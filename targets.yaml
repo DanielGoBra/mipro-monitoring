@@ -1,0 +1,82 @@
+# MiPro Monitoring v3 - maestra + seguridad
+http_targets:
+  - name: "⭐ ERP XEO :80 (CENTRAL)"
+    url: "http://192.168.200.10/"
+    timeout: 10
+    expect_status: 200
+  - name: "⭐ ERP XEO :8080 app"
+    url: "tcp://192.168.200.10:8080"
+    timeout: 5
+  - name: "⭐ ERP XEO :8443 app"
+    url: "tcp://192.168.200.10:8443"
+    timeout: 5
+  - name: "⭐ ERP XEO :8000 api"
+    url: "tcp://192.168.200.10:8000"
+    timeout: 5
+  - name: "⭐ ERP XEO :3389 RDP"
+    url: "tcp://192.168.200.10:3389"
+    timeout: 5
+  - name: "InklusivApp Interna :8443"
+    url: "https://inklusivapp.inklusiva.co:8443/"
+    method: "GET"
+    timeout: 15
+    expect_status: 200
+    verify_ssl: false
+  - name: "Inklusiva.co (web compañía)"
+    url: "https://inklusiva.co/"
+    timeout: 15
+    expect_status: 200
+    verify_ssl: true
+  - name: "Consulta Centrales"
+    url: "https://consultacentrales-inklusiva.com.co/"
+    timeout: 15
+    expect_status: 200
+    verify_ssl: true
+  - name: "Google (referencia internet)"
+    url: "https://www.google.com"
+    timeout: 10
+    expect_status: 200
+    verify_ssl: true
+
+network:
+  subnets:
+    - "192.168.1.0/24"
+    - "192.168.200.0/24"  # VLAN servidores: XEO .10, inklusivapp .25
+  ports: [80, 443, 3389, 22, 8080, 8443, 9100, 515, 631, 445, 139, 554]
+  timeout: 0.4
+  # SNMP v2c de solo lectura para identificar impresoras, switches y AP. Se prueban en orden.
+  snmp_communities: ["public"]
+  # Para Netmiko/NAPALM al router (opcional, SSH). Descomenta y completa:
+  # netmiko: {host: "192.168.1.1", username: "admin", password: "CAMBIAR", device_type: "cisco_ios"}
+  # napalm: {hostname: "192.168.1.1", username: "admin", password: "CAMBIAR", driver: "ios"}
+
+live_ping:
+  gateway: "192.168.1.1"
+  internet: "8.8.8.8"
+  app_host: "inklusivapp.inklusiva.co"
+
+# Rutas UNIVERSALES: funcionan en cualquier PC del equipo (%USERPROFILE%, %OneDrive%)
+automations:
+  - name: "MORA Tools (mora-tools)"
+    type: "folder"
+    path: "%USERPROFILE%\\Inklusiva s.a.s\\Ana Maria Grajales Mosquera - MORA\\mora-tools"
+    patterns: "*.log,*.csv,*.txt,*.xlsm,*.xlsx,*.py,*.bat,*.ps1"
+    max_age_minutes: 2880  # 2 días: genera mora_diario_*.log cada corrida
+  - name: "ANEXO 4 Automatizado"
+    type: "folder"
+    path: "%USERPROFILE%\\Inklusiva s.a.s\\Sistemas Inklusiva - Documentos\\Documentos en RED\\Joanna Ramirez\\ANEXO 4"
+    patterns: "*.csv,*.log,*.xlsm,*.xlsx,*.txt"
+    max_age_minutes: 2880  # 2 días
+  - name: "Anexo 5 Automatizado"
+    type: "folder"
+    path: "%USERPROFILE%\\Inklusiva s.a.s\\Sistemas Inklusiva - Documentos\\Documentos en RED\\Joanna Ramirez\\Anexo 5"
+    patterns: "*.csv,*.log,*.xlsm,*.xlsx,*.txt"
+    max_age_minutes: 10080  # 7 días
+
+check_intervals:
+  http_seconds: 20
+  system_seconds: 3
+  live_seconds: 5
+  devices_live_seconds: 15
+  automation_seconds: 60
+  headers_seconds: 600

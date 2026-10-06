@@ -1,0 +1,69 @@
+/* Paleta única de MiPro. El resto de pantallas solo usa estas variables. */
+:root {
+  --navy: #0e1c33;
+  --ivory: #f4efe6;
+  --ivory-soft: #fffaf2;
+  --paper: #fffaf3;
+  --paper-2: #efe8da;
+  --card: #16304e;
+  --card-2: #1c3a5c;
+  --line: rgba(244, 239, 230, 0.16);
+  --line-strong: rgba(244, 239, 230, 0.4);
+  --rail-line: #e4dccb;
+  --paper-line: #e3d9c8;
+  --muted: #b7c3d1;
+  --muted-ink: #5e6d7e;
+  --ink-soft: #3e5166;
+  --bone: #d9c7a6;
+  --steel: #9eb6ce;
+  --copper: #c47b4a;
+  --warn: #e0b15a;
+  --warn-bg: #f6ead2;
+  --warn-line: #e7d3a8;
+  --fail: #e08b7a;
+  --fail-wash: #f8e4de;
+  --fail-line: #e7c4ba;
+  --brick: #9a3412;
+  --pine: #1e4d40;
+  --rail-soft: #d9d0c2;
+
+  --bg: var(--navy);
+  --sidebar: var(--ivory);
+  --card2: var(--card-2);
+  --txt: var(--ivory);
+  --mut: var(--muted);
+  --ok: var(--bone);
+  --okbg: rgba(244, 239, 230, 0.12);
+  --failbg: rgba(224, 139, 122, 0.16);
+  --warnbg: rgba(224, 177, 90, 0.16);
+  --acc: var(--ivory);
+  --blue: var(--steel);
+  --violet: var(--copper);
+  --rail-ink: var(--navy);
+  --rail-mut: var(--muted-ink);
+
+  --font-sans: "Public Sans", "Segoe UI", sans-serif;
+  --font-serif: Newsreader, Georgia, serif;
+  --font-mono: "Azeret Mono", ui-monospace, monospace;
+}
+
+[data-theme="light"] {
+  color-scheme: light;
+  --bg: var(--ivory);
+  --sidebar: var(--navy);
+  --card: var(--paper);
+  --card2: var(--paper-2);
+  --line: var(--paper-line);
+  --txt: var(--navy);
+  --mut: var(--muted-ink);
+  --ok: var(--pine);
+  --okbg: #e7f0ea;
+  --fail: var(--brick);
+  --failbg: #fde8e4;
+  --warn: #8a5a12;
+  --warnbg: var(--warn-bg);
+  --rail-ink: var(--ivory);
+  --rail-mut: var(--rail-soft);
+  --blue: #24527a;
+  --violet: #8a4b24;
+}

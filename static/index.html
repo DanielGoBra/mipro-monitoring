@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e1c33">
+<title>Resumen · MiPro</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%23f4efe6'/%3E%3Cpath fill='%230e1c33' d='M7 25V8h4l5 8 5-8h4v17h-4V14l-5 8-5-8v11H7z'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/tokens.css">
+<link rel="stylesheet" href="/static/vendor/uplot.min.css">
+<script src="/static/vendor/uplot.min.js"></script>
+<script>if(!window.uPlot){var s=document.createElement('script');s.src='https://cdn.jsdelivr.net/npm/uplot@1.6.32/dist/uPlot.iife.min.js';document.head.appendChild(s);}</script>
+<style>
+*{box-sizing:border-box}
+html{color-scheme:dark}
+body{margin:0;font-family:"Public Sans",Segoe UI,sans-serif;font-size:14px;line-height:1.5;color:var(--txt);
+  background:var(--bg);-webkit-font-smoothing:antialiased}
+h1,.pagehead h1,.brand strong,.kpi,.sig b,.sev b,.up-pct,.ring span{font-family:Newsreader,Georgia,serif;font-optical-sizing:auto}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+a{color:inherit}
+[hidden]{display:none!important}
+:focus-visible{outline:2px solid var(--ivory);outline-offset:2px}
+.app{display:grid;grid-template-columns:232px 1fr;min-height:100vh}
+.sidebar{position:sticky;top:0;align-self:start;height:100vh;display:flex;flex-direction:column;
+  background:var(--sidebar);color:var(--rail-ink);border-right:1px solid #e4dccb;padding:18px 12px 12px}
+.brand{display:flex;gap:10px;align-items:center;width:100%;text-align:left;background:none;border:0;color:var(--rail-ink);padding:4px 8px 14px}
+.brand strong{display:block;font-size:20px;font-weight:550;letter-spacing:-.03em;line-height:1}
+.brand span{display:block;color:var(--rail-mut);font-size:12px;margin-top:3px;font-family:"Public Sans",sans-serif;letter-spacing:.01em}
+svg.mark{width:32px;height:32px;display:block;flex:none}
+.nav-label{font-family:"Azeret Mono",ui-monospace,monospace;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--rail-mut);padding:16px 10px 6px}
+nav.tabs{display:flex;flex-direction:column;gap:2px;flex:1;overflow:auto;background:transparent;padding:0;position:static}
+nav.tabs button{display:flex;align-items:center;gap:10px;width:100%;background:transparent;border:0;color:#3e5166;
+  border-radius:3px;padding:8px 10px;font-weight:600;font-size:13.5px;text-align:left}
+nav.tabs button:hover{color:var(--rail-ink);background:rgba(14,28,51,.05)}
+nav.tabs button.on{background:var(--navy);color:var(--ivory);box-shadow:none}
+nav.tabs button.on .nav-ico{color:var(--ivory)}
+nav.tabs button:active,.btn:active,.ghost:active,.iconbtn:active,.chip:active{transform:scale(.98)}
+.nav-ico{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+.nav-badge{margin-left:auto;min-width:18px;height:18px;padding:0 5px;border-radius:3px;background:#9a3412;color:#f4efe6;
+  font-size:11px;font-weight:700;font-style:normal;display:inline-grid;place-items:center}
+.side-foot{padding:12px 10px 4px;color:var(--rail-mut);font-size:12px;border-top:1px solid #e4dccb}
+.side-foot .stamp{color:var(--navy);border-color:rgba(14,28,51,.28)}
+.maincol{min-width:0}
+.topbar{position:sticky;top:0;z-index:20;display:flex;justify-content:space-between;align-items:center;gap:16px;
+  padding:14px 24px;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.pagehead h1{margin:0;font-size:28px;font-weight:550;letter-spacing:-.03em;line-height:1}
+.pagehead p{margin:2px 0 0;color:var(--mut);font-size:13px}
+.top-actions{display:flex;align-items:center;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.search{display:flex;align-items:center;gap:8px;min-width:210px;background:transparent;border:1px solid var(--line);
+  color:var(--mut);border-radius:3px;padding:8px 10px}
+.search span{flex:1;text-align:left}
+.search svg,.iconbtn svg,.ico svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
+kbd{font-family:"Azeret Mono",ui-monospace,monospace;font-size:10px;border:1px solid var(--line);border-radius:2px;padding:2px 5px;color:var(--mut)}
+.iconbtn{width:36px;height:36px;display:grid;place-items:center;border-radius:3px;border:1px solid var(--line);background:transparent;color:var(--txt);text-decoration:none}
+.iconbtn:hover{background:rgba(255,255,255,.05)}
+.ico-sun{display:none}
+[data-theme=light] .ico-moon{display:none}
+[data-theme=light] .ico-sun{display:block}
+.livepill{display:flex;align-items:center;gap:8px;padding:5px 10px;border-radius:3px;border:1px solid rgba(244,239,230,.4);background:transparent}
+.livepill[data-state=warn]{border-color:rgba(224,177,90,.7);background:var(--warnbg)}
+.livepill[data-state=bad]{border-color:rgba(224,139,122,.7);background:var(--failbg)}
+.pulse{width:7px;height:7px;border-radius:1px;background:var(--ivory);flex:none}
+.livepill[data-state=warn] .pulse{background:var(--warn)}
+.livepill[data-state=bad] .pulse{background:var(--fail)}
+.live{font-family:"Azeret Mono",ui-monospace,monospace;font-size:10px;font-weight:500;letter-spacing:.08em;color:var(--ivory)}
+.livepill[data-state=warn] .live{color:var(--warn)}
+.livepill[data-state=bad] .live{color:var(--fail)}
+#beat{max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+main{padding:18px 24px 56px}
+section.tab{display:none}
+section.tab.on{display:flex;flex-direction:column;gap:14px}
+.grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.kpis{grid-template-columns:repeat(4,minmax(0,1fr))}
+.kpis.three{grid-template-columns:repeat(3,minmax(0,1fr))}
+.grid2{display:grid;gap:12px;grid-template-columns:1fr 1fr}
+.card{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:16px;min-width:0;transition:border-color .15s ease}
+.card:hover{border-color:rgba(255,255,255,.16)}
+.card h3{margin:0 0 12px;font-size:14px;font-weight:600;letter-spacing:-.01em}
+.sub{color:var(--mut);font-weight:400;font-size:12px}
+.kicker{font-family:"Azeret Mono",ui-monospace,monospace;font-size:10px;font-weight:500;letter-spacing:.12em;text-transform:uppercase;color:var(--mut)}
+.card-h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.card-tools{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:flex-end}
+.card-h h3{margin:0}
+.dots{display:flex;gap:12px;font-size:12px;color:var(--mut);flex-wrap:wrap}
+.dots i{display:inline-block;width:8px;height:8px;border-radius:99px;margin-right:5px}
+.kpi-top{display:flex;gap:10px;align-items:center;margin-bottom:14px}
+.kpi-top h3{margin:0;font-size:13px}
+.ico{width:34px;height:34px;border-radius:3px;display:grid;place-items:center;flex:none;background:rgba(244,239,230,.08);color:var(--ivory)}
+.ico.g,.ico.b,.ico.a,.ico.v{background:rgba(244,239,230,.08);color:var(--ivory)}
+.kpi{font-size:36px;font-weight:550;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;color:var(--ivory);white-space:nowrap}
+.kpi.sm{font-size:20px}
+.kpi[data-lvl=warn]{color:var(--warn)}
+.kpi[data-lvl=bad]{color:var(--fail)}
+.kpi.flash{border-radius:8px;animation:flashv .55s ease}
+@keyframes flashv{from{background:rgba(244,239,230,.22)}to{background:transparent}}
+.unit{font-family:"Public Sans",sans-serif;font-size:13px;font-weight:600;color:var(--mut);margin-left:4px;letter-spacing:0}
+.tick{font-family:"Azeret Mono",ui-monospace,monospace;font-size:11px;color:var(--mut);margin-top:8px}
+.kpi-meter{height:3px;border-radius:0;background:rgba(244,239,230,.12);margin-top:12px;overflow:hidden}
+.kpi-meter>i{display:block;height:100%;width:0;background:var(--ivory);transition:width .45s ease}
+.mono{font-family:"Azeret Mono",ui-monospace,monospace}
+.small{font-size:12px;color:var(--mut)}
+.banner{display:flex;align-items:center;gap:14px;padding:16px 18px;border-radius:4px;border:1px solid}
+.banner.ok{background:var(--ivory);border-color:var(--ivory);color:var(--navy)}
+.banner.warn{background:#f6ead2;border-color:#e7d3a8;color:var(--navy)}
+.banner.bad{background:#f8e4de;border-color:#e7c4ba;color:var(--navy)}
+.banner-copy{min-width:0}
+.banner #bannerTxt{font-family:Newsreader,Georgia,serif;font-weight:550;font-size:18px;letter-spacing:-.02em}
+.banner .kicker{color:#5e6d7e}
+.bigdot{width:8px;height:8px;border-radius:1px;background:#1e4d40;flex:none}
+.banner.warn .bigdot{background:#8a5a12}
+.banner.bad .bigdot{background:#9a3412}
+.statpills{margin-left:auto;display:flex;gap:8px;flex-wrap:wrap}
+.pill{font-size:12px;font-weight:600;padding:4px 8px;border-radius:2px;background:rgba(14,28,51,.08);color:inherit}
+.badge{display:inline-flex;align-items:center;gap:6px;padding:3px 8px;border-radius:2px;font-size:11px;font-weight:600;border:1px solid transparent;white-space:nowrap}
+.badge::before{content:"";width:6px;height:6px;border-radius:1px;background:currentColor}
+.badge.ok{background:var(--okbg);color:var(--ok);border-color:rgba(217,199,166,.35)}
+.badge.bad{background:var(--failbg);color:var(--fail);border-color:rgba(224,139,122,.4)}
+.badge.warn{background:var(--warnbg);color:var(--warn);border-color:rgba(224,177,90,.4)}
+.uchart{width:100%;min-height:210px}
+.uplot,.u-legend,.u-axis{font-family:"Public Sans",sans-serif!important}
+.u-legend{color:var(--mut)!important;font-size:12px!important}
+.u-legend th{font-weight:500!important}
+.metrics{display:flex;gap:16px;margin-top:8px;color:var(--mut);font-size:12px;flex-wrap:wrap}
+.metrics b{color:var(--txt);font-variant-numeric:tabular-nums;margin-right:4px}
+.toolbar,.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.section-row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+input,select{background:transparent;border:1px solid var(--line);border-radius:3px;padding:8px 10px}
+input[type=checkbox]{accent-color:#1e4d40;width:auto}
+.btn{background:var(--ivory);border:1px solid var(--ivory);color:var(--navy);font-weight:600;border-radius:3px;padding:8px 14px;letter-spacing:.01em}
+.btn:hover{background:#fffaf2}
+.ghost{background:transparent;border:1px solid rgba(244,239,230,.4);border-radius:3px;padding:8px 14px;color:var(--ivory)}
+.ghost:hover{background:rgba(244,239,230,.08)}
+.grow{flex:1;min-width:180px}
+.table-wrap{overflow:auto;max-height:540px;border:1px solid var(--line);border-radius:4px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--mut);font-weight:600}
+th,td{padding:10px 12px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}
+thead th{position:sticky;top:0;background:var(--card);z-index:1}
+tbody tr{transition:background .12s}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+.iplink{text-decoration:none;border-bottom:1px dashed rgba(255,255,255,.2);font-weight:700}
+.iplink:hover{color:var(--ok);border-color:var(--ok)}
+.latcell{min-width:92px}
+.latcell .hbar{margin-top:4px}
+.hbar{height:3px;border-radius:0;background:rgba(244,239,230,.12);overflow:hidden;margin-top:6px}
+.hbar>i{display:block;height:100%}
+.lrow{display:grid;grid-template-columns:1fr auto;gap:8px 14px;align-items:center;padding:8px 0}
+.lat-val{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.mon{padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer;border-radius:8px}
+.mon:last-child{border-bottom:0}
+.mon:hover{background:rgba(255,255,255,.03)}
+.mon-top{display:grid;grid-template-columns:1fr auto auto;gap:10px;align-items:center}
+.mon-top h3{margin:0;font-size:14px}
+.up-row{padding:12px 0;border-bottom:1px solid var(--line)}
+.up-row:last-child{border-bottom:0}
+.up-meta{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-bottom:8px}
+.up-pct{font-size:18px;letter-spacing:-.03em;color:var(--txt)}
+.ubars{display:flex;gap:2px;height:34px;align-items:stretch}
+.ubars i{flex:1 1 0;min-width:2px;border-radius:2px;background:#2a3140;display:block}
+.ubars i.g{background:var(--ok)}
+.ubars i.r{background:var(--fail)}
+.ubars i.y{background:var(--warn)}
+.hdr{display:grid;grid-template-columns:auto 1fr;gap:12px;padding:12px 0;border-bottom:1px solid var(--line)}
+.hdr:last-child{border-bottom:0}
+.hdr h3{margin:0 0 6px}
+.ring{width:46px;height:46px;border-radius:50%;background:conic-gradient(var(--c,var(--ok)) calc(var(--p)*1%),color-mix(in srgb,var(--txt) 14%,transparent) 0);display:grid;place-items:center}
+.ring span{width:34px;height:34px;border-radius:50%;background:var(--card);display:grid;place-items:center;font-size:11px;font-weight:700}
+.issues{color:#f0b2a6;font-size:12px;margin-top:4px}
+.passed{color:#d9c7a6;font-size:12px;margin-top:2px}
+.auto{border-left:3px solid var(--ok)}
+.auto.is-down{border-left-color:var(--fail)}
+.auto-top{display:flex;justify-content:space-between;gap:8px;align-items:flex-start}
+.auto h3{margin:0}
+.subcard{background:rgba(14,28,51,.35);border:1px solid var(--line);border-radius:4px;padding:12px;min-width:0}
+.subcard h3{margin:0 0 8px;font-size:13px}
+.sla-up{min-width:120px}
+.sla-up b{font-variant-numeric:tabular-nums}
+.empty{color:var(--mut);font-size:13px;padding:8px 0}
+.tl{position:relative;margin:4px 0 0 6px;padding-left:18px;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:14px}
+.tl .ev{position:relative}
+.tl .ev::before{content:"";position:absolute;left:-24px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--mut);box-shadow:0 0 0 4px var(--card)}
+.tl .ev.crit::before{background:var(--fail)}
+.tl .ev.w::before{background:var(--warn)}
+.tl .ev.good::before{background:var(--ok)}
+.ev-msg{margin-top:6px;font-size:13px}
+.log{background:rgba(14,28,51,.45);border:1px solid var(--line);border-radius:4px;padding:10px 12px;max-height:280px;overflow:auto;
+  font-family:"Azeret Mono",ui-monospace,monospace;font-size:12px;line-height:1.7;color:var(--mut)}
+.log span{color:var(--txt)}
+#errbox{background:var(--failbg);border:1px solid var(--fail);color:#f8e4de;border-radius:4px;padding:10px 14px;font-size:13px}
+#drawer{position:fixed;top:0;right:0;width:440px;max-width:92vw;height:100vh;background:var(--card);border-left:1px solid var(--line);
+  z-index:50;padding:18px;overflow:auto;transform:translateX(104%);transition:transform .22s ease;box-shadow:-24px 0 60px rgba(0,0,0,.35);visibility:hidden}
+#drawer.on{transform:translateX(0);visibility:visible}
+#palWrap{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:60;justify-content:center;align-items:flex-start;padding-top:14vh}
+#palWrap.on{display:flex}
+#pal{width:560px;max-width:92vw;background:var(--card);border:1px solid var(--line);border-radius:4px;overflow:hidden;box-shadow:0 24px 80px rgba(0,0,0,.45)}
+#palInput{width:100%;border:0;border-bottom:1px solid var(--line);border-radius:0;padding:14px 16px;font-size:15px;background:transparent}
+#palInput:focus{outline:none}
+#palList{max-height:340px;overflow:auto}
+#palList div{padding:10px 16px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--line)}
+#palList div:hover,#palList div.sel{background:rgba(244,239,230,.08)}
+.path{display:grid;grid-template-columns:1fr 18px 1fr 18px 1fr;gap:8px;align-items:center}
+.hop{background:var(--card);border:1px solid var(--line);border-radius:4px;padding:10px 12px;min-width:0}
+.hop b{display:block;font-size:12px;font-weight:600}
+.hop span{display:block;margin-top:2px;font-variant-numeric:tabular-nums;font-size:13px;color:var(--mut)}
+.hop[data-lvl=ok] span{color:var(--ok)}
+.hop[data-lvl=warn] span{color:var(--warn)}
+.hop[data-lvl=bad] span{color:var(--fail)}
+.path>i{height:2px;background:color-mix(in srgb,var(--txt) 22%,transparent);border-radius:2px;display:block}
+.signals{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.sig{background:var(--ivory);color:var(--navy);border:1px solid var(--ivory);border-radius:4px;padding:10px 12px;min-width:0}
+.sig .kicker{color:#5e6d7e}
+.sig b{display:block;margin-top:4px;font-size:26px;font-weight:550;letter-spacing:-.03em;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--navy)}
+.sig small{color:#5e6d7e;font-size:12px}
+.sig[data-lvl=warn] b{color:#8a5a12}
+.sig[data-lvl=bad] b{color:#9a3412}
+.sev{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sev button{text-align:left;border:1px solid var(--line);background:transparent;border-radius:3px;padding:8px 12px;color:inherit}
+.sev b{display:block;margin-top:2px;font-size:22px;font-weight:550;font-variant-numeric:tabular-nums}
+.sev .d{color:var(--fail)}.sev .w{color:var(--warn)}.sev .o{color:var(--ok)}
+.range{display:flex;gap:2px;background:transparent;border:1px solid var(--line);border-radius:3px;padding:2px}
+.range button{border:0;background:transparent;color:var(--mut);border-radius:2px;padding:4px 8px;font-size:12px;font-weight:600}
+.range button.on{background:var(--ivory);color:var(--navy)}
+.rating{display:flex;align-items:center;gap:10px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.rolebar{display:flex;gap:6px;flex-wrap:wrap}
+.rolebar button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:transparent;color:var(--mut);border-radius:3px;padding:5px 10px;font-size:12px;font-weight:600}
+.rolebar button em{font-style:normal;font-family:"Azeret Mono",ui-monospace,monospace;font-size:11px;color:var(--mut)}
+.rolebar button.on{color:var(--navy);border-color:var(--ivory);background:var(--ivory)}
+.rolebar button.on em{color:var(--navy)}
+.src{font-family:"Azeret Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.08em;color:var(--mut);font-weight:500}
+.stamp{font-family:"Azeret Mono",ui-monospace,monospace;font-size:10px;letter-spacing:.14em;color:var(--ivory);border:1px solid rgba(244,239,230,.4);border-radius:2px;padding:2px 6px}
+.dossier{display:flex;flex-direction:column;gap:10px;margin-top:12px}
+.dhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.topo-tools{gap:6px}
+.topo-tools .ghost{min-width:34px}
+.topo-wrap{position:relative;height:520px;border:1px solid var(--line);border-radius:3px;overflow:hidden;cursor:grab;touch-action:none;background:radial-gradient(circle at 1px 1px,color-mix(in srgb,var(--txt) 9%,transparent) 1px,transparent 0) 0 0/22px 22px,var(--bg)}
+.topo-wrap.drag{cursor:grabbing}
+#topo{width:100%;height:100%;display:block;user-select:none}
+.topo-empty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;color:var(--mut);font-size:13px;pointer-events:none;max-width:520px;margin:auto}
+.topo-legend{display:flex;flex-wrap:wrap;gap:14px;margin-top:10px;font-size:11px;color:var(--mut)}
+.topo-legend span{display:inline-flex;align-items:center;gap:6px}
+.topo-legend svg{width:16px;height:16px}
+.topo-legend i{width:8px;height:8px;border-radius:50%;display:inline-block}
+#topo .link{fill:none;stroke:color-mix(in srgb,var(--txt) 34%,transparent);stroke-width:1.4}
+#topo .link.wan{stroke:var(--bone);stroke-width:2;stroke-dasharray:6 4}
+#topo .link.trunk{stroke:var(--steel);stroke-width:2.4}
+#topo .link.flow{stroke:var(--bone);stroke-width:2.4;stroke-dasharray:2 14;stroke-linecap:round;animation:topoflow 1.6s linear infinite;opacity:.8}
+@keyframes topoflow{to{stroke-dashoffset:-16}}
+#topo .zone{fill:color-mix(in srgb,var(--card) 82%,transparent);stroke:var(--line);stroke-width:1}
+#topo .zone-h{font:600 10px "Azeret Mono",ui-monospace,monospace;letter-spacing:.1em;text-transform:uppercase;fill:var(--mut)}
+#topo .seg{fill:var(--card2);stroke:var(--steel);stroke-width:1.4}
+#topo .seg-t{font:600 13px "Public Sans",system-ui,sans-serif;fill:var(--txt)}
+#topo .seg-s{font:500 10px "Azeret Mono",ui-monospace,monospace;fill:var(--mut)}
+#topo .node{cursor:pointer}
+#topo .node .tile{fill:var(--card2);stroke:color-mix(in srgb,var(--txt) 20%,transparent);stroke-width:1}
+#topo .node:hover .tile,#topo .node:focus .tile{stroke:var(--bone);stroke-width:1.6}
+#topo .node .ico{fill:none;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+#topo .node .lbl{font:600 10.5px "Public Sans",system-ui,sans-serif;fill:var(--txt);text-anchor:middle}
+#topo .node .ip{font:500 9.5px "Azeret Mono",ui-monospace,monospace;fill:var(--mut);text-anchor:middle}
+#topo .node .port{font:600 8.5px "Azeret Mono",ui-monospace,monospace;fill:var(--steel)}
+#topo .node.off .tile{stroke:var(--fail);stroke-dasharray:3 2}
+#topo .node.off .ico,#topo .node.off .lbl{opacity:.45}
+#topo .node.dim{opacity:.18}
+#topo .dot{stroke:var(--card2);stroke-width:2}
+#topo .dot.ok{fill:var(--ok)}#topo .dot.warn{fill:var(--warn)}#topo .dot.fail{fill:var(--fail)}
+#topo .dot.pulse{animation:topopulse 1.8s ease-out infinite;transform-box:fill-box;transform-origin:center}
+@keyframes topopulse{0%{stroke-width:2}60%{stroke-width:7;stroke:color-mix(in srgb,var(--fail) 30%,transparent)}100%{stroke-width:2}}
+.k-gateway,.k-printer,.k-cloud{stroke:var(--bone)}.k-firewall,.k-camera{stroke:var(--copper)}.k-switch,.k-ap,.k-segment{stroke:var(--steel)}.k-server,.k-linux{stroke:var(--ivory)}.k-pc,.k-mobile,.k-unknown{stroke:var(--muted)}
+[data-theme=light] .k-server,[data-theme=light] .k-linux,[data-theme=light] .k-gateway,[data-theme=light] .k-printer,[data-theme=light] .k-cloud{stroke:var(--navy)}
+[data-theme=light] .k-firewall,[data-theme=light] .k-camera{stroke:var(--violet)}
+[data-theme=light] .k-switch,[data-theme=light] .k-ap,[data-theme=light] .k-segment{stroke:var(--blue)}
+[data-theme=light] .k-pc,[data-theme=light] .k-mobile,[data-theme=light] .k-unknown{stroke:var(--muted-ink)}
+[data-theme=light] #topo .link.wan,[data-theme=light] #topo .link.flow{stroke:var(--violet)}
+[data-theme=light] #topo .link.trunk,[data-theme=light] #topo .seg{stroke:var(--blue)}
+[data-theme=light] #topo .node .port{fill:var(--blue)}
+[data-theme=light] #topo .node:hover .tile{stroke:var(--navy)}
+.supbar{height:6px;border-radius:2px;background:color-mix(in srgb,var(--txt) 12%,transparent);overflow:hidden;margin-top:4px}
+.supbar>i{display:block;height:100%;background:var(--ok)}
+.evid{margin:6px 0 0;padding-left:16px;font-size:12px;color:var(--mut)}
+@media (prefers-reduced-motion:reduce){#topo .link.flow,#topo .dot.pulse{animation:none}}
+.dsec{border:1px solid var(--line);border-radius:4px;padding:10px 12px;background:rgba(14,28,51,.35);animation:rise .35s ease both}
+.dsec:nth-child(2){animation-delay:.04s}.dsec:nth-child(3){animation-delay:.08s}.dsec:nth-child(4){animation-delay:.12s}
+.dsec p{margin:6px 0 0}
+.chip{border:1px solid var(--line);background:transparent;color:var(--txt);border-radius:3px;padding:5px 10px;font-size:12px;font-weight:600}
+.chip.ok{border-color:rgba(217,199,166,.45);color:var(--ok)}
+.chip.bad{border-color:rgba(224,139,122,.5);color:var(--fail)}
+.chip:hover{background:rgba(255,255,255,.04)}
+@keyframes rise{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes slideNext{from{opacity:0;transform:translateX(16px)}to{opacity:1;transform:none}}
+@keyframes slidePrev{from{opacity:0;transform:translateX(-16px)}to{opacity:1;transform:none}}
+section.tab.on[data-dir=next]{animation:slideNext .28s ease}
+section.tab.on[data-dir=prev]{animation:slidePrev .28s ease}
+section.tab.on>.banner,section.tab.on>.card,section.tab.on>.kpis>.card,section.tab.on>.grid2>.card{animation:rise .4s cubic-bezier(.16,.8,.3,1) both}
+.kpis>.card:nth-child(2){animation-delay:.04s}.kpis>.card:nth-child(3){animation-delay:.08s}.kpis>.card:nth-child(4){animation-delay:.12s}
+body.tv{font-size:18px}
+body.tv .sidebar{display:none}
+body.tv .app{grid-template-columns:1fr}
+body.tv main{max-width:none}
+body.tv .kpi{font-size:42px}
+body.tv .pagehead h1{font-size:32px}
+body.tv .toolbar,body.tv #errbox,body.tv .search{display:none!important}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important}}
+[data-theme=light]{color-scheme:light}
+[data-theme=light] body{background:var(--bg)}
+[data-theme=light] .card{box-shadow:none}
+[data-theme=light] .card:hover{border-color:#cfc3ae}
+[data-theme=light] .sidebar{border-right-color:#0e1c33}
+[data-theme=light] .side-foot{border-top-color:rgba(244,239,230,.16)}
+[data-theme=light] nav.tabs button{color:#d9d0c2}
+[data-theme=light] nav.tabs button:hover{color:var(--ivory);background:rgba(244,239,230,.08)}
+[data-theme=light] nav.tabs button.on{background:var(--ivory);color:var(--navy)}
+[data-theme=light] nav.tabs button.on .nav-ico{color:var(--navy)}
+[data-theme=light] .ghost:hover,[data-theme=light] .iconbtn:hover,[data-theme=light] .mon:hover,[data-theme=light] tbody tr:hover{background:rgba(14,28,51,.04)}
+[data-theme=light] .btn{background:var(--navy);color:var(--ivory);border-color:var(--navy)}
+[data-theme=light] .btn:hover{background:#16304e}
+[data-theme=light] .ghost{color:var(--navy);border-color:#cfc3ae}
+[data-theme=light] .sig{background:var(--navy);color:var(--ivory);border-color:var(--navy)}
+[data-theme=light] .sig b{color:var(--ivory)}
+[data-theme=light] .sig .kicker,[data-theme=light] .sig small{color:#c9c0b0}
+[data-theme=light] .sig[data-lvl=warn] b{color:#e0b15a}
+[data-theme=light] .sig[data-lvl=bad] b{color:#e08b7a}
+[data-theme=light] .banner.ok{background:var(--navy);border-color:var(--navy);color:var(--ivory)}
+[data-theme=light] .banner.ok .kicker{color:#c9c0b0}
+[data-theme=light] .banner.warn{background:#f6ead2;border-color:#e7d3a8;color:var(--navy)}
+[data-theme=light] .banner.bad{background:#f8e4de;border-color:#e7c4ba;color:var(--navy)}
+[data-theme=light] .banner.ok .bigdot{background:var(--ivory)}
+[data-theme=light] .banner .pill{background:rgba(244,239,230,.12)}
+[data-theme=light] .kpi{color:var(--navy)}
+[data-theme=light] .side-foot .stamp{color:var(--ivory);border-color:rgba(244,239,230,.4)}
+[data-theme=light] .range button.on,[data-theme=light] .rolebar button.on{background:var(--navy);color:var(--ivory);border-color:var(--navy)}
+[data-theme=light] .rolebar button.on em{color:var(--ivory)}
+[data-theme=light] .hbar,[data-theme=light] .kpi-meter{background:#e3d9c8}
+[data-theme=light] .kpi-meter>i{background:var(--navy)}
+[data-theme=light] .issues{color:#9a3412}
+[data-theme=light] .passed{color:#1e4d40}
+[data-theme=light] .ubars i{background:#e3d9c8}
+[data-theme=light] #errbox{color:#9a3412}
+[data-theme=light] :focus-visible{outline-color:var(--navy)}
+@media(max-width:1200px){.kpis,.kpis.three{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:980px){.grid2{grid-template-columns:1fr}}
+@media(max-width:860px){
+  .app{grid-template-columns:1fr}
+  .sidebar{height:auto;position:sticky;z-index:30;border-right:0;border-bottom:1px solid var(--line)}
+  nav.tabs{flex-direction:row;overflow-x:auto;padding-bottom:4px}
+  nav.tabs button{width:auto;white-space:nowrap}
+  .nav-label,.side-foot,#beat,#clock{display:none}
+  .topbar{padding:12px 14px;flex-wrap:wrap;align-items:flex-start}
+  .pagehead,.top-actions{width:100%}
+  .top-actions{justify-content:flex-start}
+  main{padding:14px}
+  .search{min-width:0;flex:1}
+  .search kbd{display:none}
+  .statpills{margin-left:0}
+  .signals{grid-template-columns:1fr 1fr}
+  .path{grid-template-columns:1fr}
+  .path>i{display:none}
+  .kpis,.kpis.three{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<button class="brand" type="button" onclick="gotoTab('resumen')">
+  <svg class="mark" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="3" fill="currentColor"/><path fill="var(--sidebar)" d="M7 25V8h4l5 8 5-8h4v17h-4V14l-5 8-5-8v11H7z"/></svg>
+  <div><strong>MiPro</strong><span>Inteligencia</span></div>
+</button>
+<nav class="tabs" id="tabs">
+  <div class="nav-label">Observabilidad</div>
+  <button type="button" data-t="resumen" class="on" aria-current="page"><svg class="nav-ico" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg><span>Resumen</span></button>
+  <button type="button" data-t="paginas"><svg class="nav-ico" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg><span>Páginas</span></button>
+  <button type="button" data-t="sla"><svg class="nav-ico" viewBox="0 0 24 24"><path d="M4 19V5M4 19h16"/><path d="m7 14 4-4 3 3 5-6"/></svg><span>SLA</span><i class="nav-badge" id="badgeSla" hidden>0</i></button>
+  <div class="nav-label">Infraestructura</div>
+  <button type="button" data-t="red"><svg class="nav-ico" viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="6" rx="1"/><rect x="2" y="16" width="6" height="6" rx="1"/><rect x="16" y="16" width="6" height="6" rx="1"/><path d="M12 8v4M12 12H5v4M12 12h7v4"/></svg><span>Red</span></button>
+  <button type="button" data-t="autos"><svg class="nav-ico" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/></svg><span>Automatizaciones</span></button>
+  <button type="button" data-t="fallos"><svg class="nav-ico" viewBox="0 0 24 24"><path d="M12 3 2 20h20L12 3z"/><path d="M12 9v5M12 17h.01"/></svg><span>Fallos</span><i class="nav-badge" id="badgeFallos" hidden>0</i></button>
+  <div class="nav-label">Seguridad</div>
+  <button type="button" data-t="cyber"><svg class="nav-ico" viewBox="0 0 24 24"><path d="M12 3 5 6v6c0 4.5 3 7.5 7 9 4-1.5 7-4.5 7-9V6l-7-3z"/></svg><span>Cyber</span></button>
+</nav>
+<div class="side-foot"><span class="stamp">INTERNO</span><div style="margin-top:8px">Observación · v4</div><a href="/login" style="display:inline-block;margin-top:8px;color:inherit">Sesión</a></div>
+</aside>
+<div class="maincol">
+<header class="topbar">
+  <div class="pagehead">
+    <h1 id="pageTitle">Resumen</h1>
+    <p id="pageSub">Ruta, latencia y recursos</p>
+  </div>
+  <div class="top-actions">
+    <button class="search" type="button" onclick="openPalette()" title="Buscar"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span>Buscar</span><kbd>Ctrl K</kbd></button>
+    <div class="livepill" id="livepill" data-state="ok"><span class="pulse" id="dot"></span><span class="live" id="wsState">EN VIVO</span></div><span class="small" id="beat">conectando…</span>
+    <span class="small mono" id="clock"></span>
+    <button class="iconbtn" type="button" onclick="toggleTheme()" title="Tema claro u oscuro"><svg class="ico-moon" viewBox="0 0 24 24"><path d="M21 14.5A8.5 8.5 0 1 1 9.5 3 7 7 0 0 0 21 14.5z"/></svg><svg class="ico-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg></button>
+    <button class="iconbtn" type="button" onclick="toggleTV()" title="Modo TV"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="m8 21 4-3 4 3"/></svg></button>
+    <a class="iconbtn" href="/estado" target="_blank" title="Página pública de estado"><svg viewBox="0 0 24 24"><path d="M14 4h6v6"/><path d="M10 14 20 4"/><path d="M19 13v6a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1h6"/></svg></a>
+  </div>
+</header>
+<main>
+<div id="errbox" style="display:none"></div>
+
+<section class="tab on" id="tab-resumen">
+  <div class="banner ok" id="banner"><span class="bigdot"></span><div class="banner-copy"><div class="kicker">Estado general</div><div id="bannerTxt">Verificando sistemas…</div></div><div class="statpills" id="statPills"></div></div>
+  <div class="signals">
+    <div class="sig" id="sigLat"><span class="kicker">Latencia</span><b>—</b><small>peor salto</small></div>
+    <div class="sig" id="sigTr"><span class="kicker">Tráfico</span><b>—</b><small>bajada</small></div>
+    <div class="sig" id="sigErr"><span class="kicker">Errores</span><b>0</b><small>monitores caídos</small></div>
+    <div class="sig" id="sigSat"><span class="kicker">Saturación</span><b>—</b><small>CPU del servidor</small></div>
+  </div>
+  <div class="sev" id="sevBar">
+    <button type="button" onclick="gotoTab('fallos')"><span class="kicker">Crítico</span><b class="d" id="sevC">0</b></button>
+    <button type="button" onclick="gotoTab('fallos')"><span class="kicker">Aviso</span><b class="w" id="sevW">0</b></button>
+    <button type="button" onclick="gotoTab('fallos')"><span class="kicker">En calma</span><b class="o" id="sevO">0</b></button>
+  </div>
+  <div class="path" id="path" aria-label="Ruta de red">
+    <div class="hop" id="hopGw"><b>Gateway</b><span>—</span></div><i></i>
+    <div class="hop" id="hopNet"><b>Internet</b><span>—</span></div><i></i>
+    <div class="hop" id="hopApp"><b>App</b><span>—</span></div>
+  </div>
+  <div class="chips" id="monChips"></div>
+  <div class="section-row toolbar"><span class="kicker">Indicadores</span><button class="ghost" type="button" onclick="dashConfig()">Personalizar</button></div>
+  <div class="grid kpis" id="kpiGrid">
+    <div class="card kpi-card" data-kpi="internet">
+      <div class="kpi-top"><span class="ico g"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg></span><div><h3>Internet</h3><div class="sub">ping 8.8.8.8 · 5s</div></div></div>
+      <div class="kpi" id="kpiInternet">—<span class="unit">ms</span></div>
+      <div class="kpi-meter"><i id="meterNet"></i></div>
+      <div class="tick" id="tickNet">—</div>
+    </div>
+    <div class="card kpi-card" data-kpi="app">
+      <div class="kpi-top"><span class="ico v"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="14" rx="2"/><path d="M8 21h8M12 18v3"/></svg></span><div><h3>InklusivApp</h3><div class="sub">:8443</div></div></div>
+      <div class="kpi" id="kpiApp">—<span class="unit">ms</span></div>
+      <div class="kpi-meter"><i id="meterApp"></i></div>
+      <div class="tick" id="kpiAppSub">—</div>
+    </div>
+    <div class="card kpi-card" data-kpi="gw">
+      <div class="kpi-top"><span class="ico b"><svg viewBox="0 0 24 24"><path d="M5 12.5a7 7 0 0 1 14 0"/><path d="M8.5 12.5a3.5 3.5 0 0 1 7 0"/><path d="M12 12.5v.01M12 19v2"/></svg></span><div><h3>Gateway</h3><div class="sub">latencia y banda</div></div></div>
+      <div class="kpi" id="kpiGw">—<span class="unit">ms</span></div>
+      <div class="kpi-meter"><i id="meterGw"></i></div>
+      <div class="tick" id="kpiNet">—</div>
+    </div>
+    <div class="card kpi-card" data-kpi="dev">
+      <div class="kpi-top"><span class="ico a"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span><div><h3>Equipos</h3><div class="sub">descubiertos en LAN</div></div></div>
+      <div class="kpi" id="kpiDevices">—</div>
+      <div class="tick" id="kpiSys">—</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Latencia <span class="sub" id="tickPing">—</span></h3><div class="card-tools"><div class="dots"><span><i style="background:#d9c7a6"></i>Gateway</span><span><i style="background:#9eb6ce"></i>Internet</span><span><i style="background:#c47b4a"></i>App</span></div><div class="range" id="range"><button type="button" data-h="1" data-min="15">15m</button><button type="button" data-h="1" data-min="60" class="on">1h</button><button type="button" data-h="6" data-min="360">6h</button><button type="button" data-h="24" data-min="1440">24h</button></div></div></div>
+    <div class="uchart" id="chPing"></div>
+  </div>
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><h3>Servidor <span class="sub" id="tickSys">—</span></h3><div class="dots"><span><i style="background:#d9c7a6"></i>CPU</span><span><i style="background:#9eb6ce"></i>RAM</span></div></div>
+      <div class="uchart" id="chSys"></div>
+      <div class="metrics" id="sysNow"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><h3>Ancho de banda <span class="sub" id="tickBw">—</span></h3><div class="dots"><span><i style="background:#9eb6ce"></i>Bajada</span><span><i style="background:#c47b4a"></i>Subida</span></div></div>
+      <div class="uchart" id="chNet"></div>
+      <div class="metrics" id="bwNow"></div>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-red">
+  <div class="card topo-card">
+    <div class="card-h">
+      <div><span class="kicker">Topología</span><h3>Diagrama de red</h3></div>
+      <div class="toolbar topo-tools">
+        <span class="small" id="topoInfo">Escanea un segmento para dibujarlo</span>
+        <button class="ghost" type="button" onclick="topoZoom(1.2)" aria-label="Acercar">+</button>
+        <button class="ghost" type="button" onclick="topoZoom(1/1.2)" aria-label="Alejar">−</button>
+        <button class="ghost" type="button" onclick="topoFit()">Ajustar</button>
+        <button class="ghost" type="button" onclick="loadTopo()">Redibujar</button>
+        <button class="ghost" type="button" onclick="topoExport()">Exportar SVG</button>
+      </div>
+    </div>
+    <div class="topo-wrap" id="topoWrap">
+      <svg id="topo" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Diagrama de red"></svg>
+      <div class="topo-empty" id="topoEmpty">Cada segmento que escanees se suma al diagrama: Internet, gateway, segmento y equipos por tipo. Con SNMP en los switches, cada equipo cuelga de su puerto real.</div>
+    </div>
+    <div class="topo-legend" id="topoLegend"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><div><span class="kicker">Inventario</span><h3>Equipos en la LAN</h3></div><span class="small" id="scanInfo">Sin observación</span></div>
+    <div class="toolbar">
+      <input id="cidr" value="192.168.1.0/24" spellcheck="false" style="min-width:180px" aria-label="CIDR">
+      <button class="btn" type="button" onclick="scanNet(false)">Escanear</button>
+      <button class="ghost" type="button" onclick="scanNet(true)">Solo latencia</button>
+      <label class="small"><input type="checkbox" id="autoLive" checked> auto 15s</label>
+      <input id="devFilter" class="grow" placeholder="Filtrar IP, host, marca…" oninput="filterDevs()" aria-label="Filtrar equipos">
+    </div>
+    <div class="rolebar" id="roleBar" aria-label="Tipo de equipo"></div>
+    <div class="table-wrap" style="margin-top:12px"><table>
+      <thead><tr><th>IP</th><th>Host</th><th>MAC</th><th>Marca</th><th>Tipo</th><th>Latencia</th><th>Puertos</th><th>Estado</th></tr></thead>
+      <tbody id="netBody"><tr><td colspan="8" class="empty">Sin observación de LAN. Impresora, access point, switch, PC y servidor aparecen aquí al escanear en la empresa.</td></tr></tbody>
+    </table></div>
+    <div id="lanDelta" class="chips" style="margin-top:10px"></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>DNS</h3><button class="ghost" type="button" onclick="loadDNS()">Medir</button></div>
+    <div id="dnsList"><div class="empty">Resolución de los nombres que ya monitoreas.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Interfaces SNMP</h3><span class="small" id="snmpInfo">Requiere SNMP activo en el router.</span></div>
+    <div class="toolbar">
+      <input id="snmpHost" value="192.168.1.1" style="width:160px" aria-label="Host SNMP">
+      <input id="snmpCom" value="public" style="width:120px" aria-label="Community">
+      <button class="btn" type="button" onclick="loadSNMP()">Leer router</button>
+    </div>
+    <div class="table-wrap" style="margin-top:12px"><table>
+      <thead><tr><th>IF</th><th>Nombre</th><th>Bajada</th><th>Subida</th></tr></thead>
+      <tbody id="snmpBody"><tr><td colspan="4" class="empty">Aún no se lee el router.</td></tr></tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="tab" id="tab-paginas">
+  <div class="grid2">
+    <div class="card">
+      <div class="card-h"><div><span class="kicker">Superficie</span><h3>Latencia por página</h3></div><button class="ghost" type="button" onclick="loadHeaders()">Auditar headers</button></div>
+      <div id="latBars"></div>
+    </div>
+    <div class="card">
+      <div class="card-h"><div><span class="kicker">Fuentes</span><h3>Monitores</h3></div><span class="src">HTTP · API</span></div>
+      <div id="httpList"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><div><span class="kicker">Historial</span><h3>Uptime</h3></div><span class="src">72 H</span></div>
+    <div id="uptime"><div class="empty">El historial aparece con el primer ciclo de chequeos.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><div><span class="kicker">Postura web</span><h3>Encabezados y TLS</h3></div><span class="src">HSTS · CSP · CERT</span></div>
+    <div id="headersList"><div class="empty">Sin auditoría todavía.</div></div>
+  </div>
+</section>
+
+<section class="tab" id="tab-autos">
+  <div id="autoList" class="grid"><div class="empty">Cargando automatizaciones…</div></div>
+</section>
+
+<section class="tab" id="tab-cyber">
+  <div class="card">
+    <div class="card-h"><div><h3>Rating de seguridad</h3><span class="sub" id="secLabel">inventario y certificados</span></div><div class="rating"><div class="ring" id="secRing" style="--p:100;--c:var(--ok)"><span id="secNum">—</span></div></div></div>
+    <div id="posture"><div class="empty">Aparece al escanear la red y auditar headers.</div></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Tráfico y conexiones</h3><span class="small" id="secInfo">Port-scan, tráfico alto, puertos raros.</span></div>
+    <div class="toolbar">
+      <button class="btn" type="button" onclick="runSniff()">Capturar 8s</button>
+      <button class="ghost" type="button" onclick="loadConnections()">Conexiones</button>
+      <button class="ghost" type="button" onclick="loadLibs()">Librerías</button>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="subcard"><h3>Top talkers</h3><div id="talkers" class="small">Sin captura.</div></div>
+      <div class="subcard"><h3>Sockets</h3><div id="conns" class="small">—</div></div>
+      <div class="subcard"><h3>HTTP plano</h3><div id="insec" class="small">—</div></div>
+      <div class="subcard"><h3>Librerías</h3><div id="libs" class="small">—</div></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Auditorías</h3><span class="sub">Nmap, página, SSH, certificado, procesos, Shodan</span></div>
+    <div class="toolbar">
+      <input id="cyberTarget" value="192.168.1.1" style="min-width:160px" spellcheck="false" aria-label="Objetivo">
+      <button class="btn" type="button" onclick="cyberNmap()">Nmap</button>
+      <button class="ghost" type="button" onclick="cyberPage()">Page intel</button>
+      <button class="ghost" type="button" onclick="cyberSSH()">SSH</button>
+      <button class="ghost" type="button" onclick="cyberCert()">Certificado</button>
+      <button class="ghost" type="button" onclick="cyberProc()">Procesos</button>
+      <button class="ghost" type="button" onclick="cyberShodan()">Shodan</button>
+      <span class="small" id="cyberInfo"></span>
+    </div>
+    <div class="grid" style="margin-top:12px">
+      <div class="subcard"><h3>Nmap y banner</h3><div id="cyNmap" class="small">—</div></div>
+      <div class="subcard"><h3>Page intel</h3><div id="cyPage" class="small">—</div></div>
+      <div class="subcard"><h3>SSH · certificado · procesos</h3><div id="cyMisc" class="small">—</div></div>
+    </div>
+  </div>
+</section>
+
+<section class="tab" id="tab-sla">
+  <div class="grid kpis three">
+    <div class="card kpi-card"><div class="kicker">Uptime medio</div><div class="kpi" id="slaAvg" style="margin-top:10px">—</div></div>
+    <div class="card kpi-card"><div class="kicker">Servicios</div><div class="kpi" id="slaCount" style="margin-top:10px">—</div></div>
+    <div class="card kpi-card"><div class="kicker">Bajo 99%</div><div class="kpi" id="slaRisk" style="margin-top:10px">—</div></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Disponibilidad</h3><span class="small" id="slaInfo"></span></div>
+    <div class="toolbar">
+      <select id="slaDays" aria-label="Ventana"><option value="7">7 días</option><option value="30" selected>30 días</option><option value="90">90 días</option></select>
+      <button class="btn" type="button" onclick="loadSLA()">Calcular</button>
+      <button class="ghost" type="button" onclick="downloadPDF()">Reporte PDF</button>
+    </div>
+    <div class="table-wrap" style="margin-top:12px"><table>
+      <thead><tr><th>Servicio</th><th>Categoría</th><th>Uptime</th><th>p95</th><th>Promedio</th><th>Checks</th></tr></thead>
+      <tbody id="slaBody"><tr><td colspan="6" class="empty">Calculando…</td></tr></tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Incidentes</h3><button class="ghost" type="button" onclick="loadIncidents()">Actualizar</button></div>
+    <p class="small" style="margin:-4px 0 8px">Se abren con un crítico y se cierran al recuperar.</p>
+    <div class="table-wrap"><table>
+      <thead><tr><th>#</th><th>Título</th><th>Nivel</th><th>Estado</th><th>Inicio</th><th>Fin</th><th></th></tr></thead>
+      <tbody id="incBody"></tbody>
+    </table></div>
+  </div>
+</section>
+
+<section class="tab" id="tab-fallos">
+  <div class="grid kpis three">
+    <div class="card kpi-card"><div class="kicker">Críticos</div><div class="kpi" id="fCrit" style="margin-top:10px">0</div></div>
+    <div class="card kpi-card"><div class="kicker">Avisos</div><div class="kpi" id="fWarn" style="margin-top:10px">0</div></div>
+    <div class="card kpi-card"><div class="kicker">En calma</div><div class="kpi" id="fOk" style="margin-top:10px">0</div></div>
+  </div>
+  <div class="card">
+    <div class="card-h"><h3>Diagnóstico</h3><button class="ghost" type="button" onclick="loadFaults()">Re-analizar</button></div>
+    <div id="faults" class="tl"><div class="empty">Analizando…</div></div>
+    <p class="small">Gateway caído: LAN. Internet caído: ISP. App caída: servidor o VLAN. Muchos offline: switch.</p>
+  </div>
+  <div class="card">
+    <h3>Bitácora</h3>
+    <div id="events" class="log" data-empty="1">—</div>
+  </div>
+</section>
+</main>
+</div>
+</div>
+<div id="drawer" inert aria-hidden="true"><div class="row"><b id="drawerTitle">Detalle</b><button class="ghost" type="button" onclick="closeDrawer()">Cerrar</button></div><div id="drawerBody" class="small" style="margin-top:12px">—</div></div>
+<div id="palWrap"><div id="pal"><input id="palInput" placeholder="Equipo, página o acción…  Esc cierra" autocomplete="off"><div id="palList"></div></div></div>
+<script>
+"use strict";
+window.addEventListener("error",function(e){try{var b=document.getElementById("errbox");b.style.display="block";b.innerHTML="<b>Error JS:</b> "+esc(e.message||e.error);}catch(_){}});
+let MAX=180;
+const PAGES={
+  resumen:["Resumen","Ruta, latencia y recursos"],
+  red:["Red","Inventario por tipo, DNS y SNMP"],
+  paginas:["Páginas","Superficie HTTP, uptime y TLS"],
+  autos:["Automatizaciones","Archivos y jobs"],
+  cyber:["Cyber","Exposición, tráfico y auditorías"],
+  sla:["SLA","Disponibilidad e incidentes"],
+  fallos:["Fallos","Causa probable y bitácora"]
+};
+const TAB_ORDER=["resumen","paginas","sla","red","autos","fallos","cyber"];
+const LASTV={};
+let lastMsg=0,lastUptime=0,lastFull=0,palIdx=0,tvTimer=null,DEV_CACHE=[];
+let pSys=null,pNet=null,pPing=null;
+const B={sx:[],cpu:[],ram:[],nx:[],dn:[],up:[],px:[],gw:[],nt:[],ap:[]};
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(m){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m];});}
+function nowS(){return new Date().toLocaleTimeString();}
+function ago(t){const s=Math.max(0,Math.round((Date.now()-t)/1000));return s<2?"ahora mismo":"hace "+s+"s";}
+function beat(){lastMsg=Date.now();const d=document.getElementById("dot");d.style.transform="scale(1.45)";setTimeout(function(){d.style.transform="";},180);document.getElementById("beat").textContent="latido "+nowS();}
+function setLive(txt,state){const el=document.getElementById("wsState"),pill=document.getElementById("livepill"),dot=document.getElementById("dot");if(el)el.textContent=txt;if(pill)pill.dataset.state=state||"ok";if(dot)dot.dataset.state=state||"ok";}
+function themeColors(){const light=document.documentElement.getAttribute("data-theme")==="light";return {axis:light?"#5e6d7e":"#b7c3d1",grid:light?"#e3d9c8":"rgba(244,239,230,.08)",ok:light?"#1e4d40":"#d9c7a6",blue:light?"#24527a":"#9eb6ce",amber:light?"#8a4b24":"#c47b4a",violet:light?"#8a4b24":"#c47b4a"};}
+document.getElementById("tabs").addEventListener("click",function(e){const b=e.target.closest("button");if(!b||!b.dataset.t)return;document.querySelectorAll("#tabs button").forEach(function(x){x.classList.remove("on");x.removeAttribute("aria-current");});b.classList.add("on");b.setAttribute("aria-current","page");document.querySelectorAll("section.tab").forEach(function(x){x.classList.remove("on");});document.getElementById("tab-"+b.dataset.t).classList.add("on");const p=PAGES[b.dataset.t]||[b.dataset.t,""];document.getElementById("pageTitle").textContent=p[0];document.getElementById("pageSub").textContent=p[1];document.title=p[0]+" · MiPro";requestAnimationFrame(sizePlots);});
+function mkPlot(el,series,ymin,ymax){if(!window.uPlot){el.innerHTML='<div class="empty">Gráficas no disponibles. Los números de arriba siguen en vivo.</div>';return null;}const c=themeColors();const o={width:el.clientWidth||600,height:200,scales:{x:{time:false},y:ymin!=null?{range:[ymin,ymax]}:{}},series:series,axes:[{stroke:c.axis,grid:{stroke:c.grid},ticks:{stroke:c.grid}},{stroke:c.axis,grid:{stroke:c.grid},ticks:{stroke:c.grid}}],legend:{show:false},cursor:{show:true}};try{return new uPlot(o,[[]].concat(series.slice(1).map(function(){return [];})),el);}catch(e){el.innerHTML='<div class="empty">Error de gráfica: '+esc(e.message)+"</div>";return null;}}
+function initPlots(){const c=themeColors();const pt={show:false};pSys=mkPlot(document.getElementById("chSys"),[{label:"t"},{label:"CPU %",stroke:c.ok,width:2,fill:"rgba(217,199,166,.18)",points:pt},{label:"RAM %",stroke:c.blue,width:2,points:pt}],0,100);pNet=mkPlot(document.getElementById("chNet"),[{label:"t"},{label:"Bajada",stroke:c.blue,width:2,fill:"rgba(158,182,206,.18)",points:pt},{label:"Subida",stroke:c.amber,width:2,points:pt}]);pPing=mkPlot(document.getElementById("chPing"),[{label:"t"},{label:"Gateway",stroke:c.ok,width:2,points:pt},{label:"Internet",stroke:c.blue,width:2,points:pt},{label:"App",stroke:c.violet,width:2,points:pt}]);}
+function destroyPlots(){[pSys,pNet,pPing].forEach(function(p){try{if(p)p.destroy();}catch(e){}});pSys=pNet=pPing=null;}
+function rebuildPlots(){destroyPlots();["chSys","chNet","chPing"].forEach(function(id){const el=document.getElementById(id);if(el)el.innerHTML="";});initPlots();try{if(pSys&&B.sx.length)pSys.setData([B.sx,B.cpu,B.ram]);if(pNet&&B.nx.length)pNet.setData([B.nx,B.dn,B.up]);if(pPing&&B.px.length)pPing.setData([B.px,B.gw,B.nt,B.ap]);}catch(e){}sizePlots();}
+function sizePlots(){[pSys,pNet,pPing].forEach(function(p){if(!p||!p.root)return;try{const el=p.root.parentNode;p.setSize({width:Math.max(200,el.clientWidth-8),height:200});}catch(e){}});}
+window.addEventListener("resize",function(){sizePlots();});
+function trim(a){while(a[0].length>MAX){a.forEach(function(s){s.shift();});}}
+function setSig(id,text,lvl){const el=document.getElementById(id);if(!el)return;el.dataset.lvl=lvl||"";const b=el.querySelector("b");if(b)b.textContent=text;}
+function flashEl(el){if(!el)return;el.classList.remove("flash");void el.offsetWidth;el.classList.add("flash");}
+function setMs(id,meterId,v){const el=document.getElementById(id);if(!el)return;const key=v==null?"":String(v);if(LASTV[id]!=null&&LASTV[id]!==key)flashEl(el);LASTV[id]=key;const missing=v==null||v===""||Number.isNaN(Number(v));if(missing){el.innerHTML='—<span class="unit">ms</span>';el.dataset.lvl="bad";}else{const n=Number(v);el.innerHTML=n+'<span class="unit">ms</span>';el.dataset.lvl=n<80?"ok":n<180?"warn":"bad";}const m=document.getElementById(meterId);if(!m)return;const ms=Number(v);const w=missing?6:Math.max(8,Math.min(100,100-Math.min(ms,250)/2.5));m.style.width=w+"%";m.style.background=el.dataset.lvl==="warn"?"var(--warn)":el.dataset.lvl==="bad"?"var(--fail)":"var(--ok)";}
+function setHop(id,ms){const el=document.getElementById(id);if(!el)return;const s=el.querySelector("span");const missing=ms==null||ms==="";el.dataset.lvl=missing?"bad":ms<80?"ok":ms<180?"warn":"bad";if(s)s.textContent=missing?"sin respuesta":ms+" ms";}
+function pushSys(s){if(!s)return;B.sx.push(B.sx.length?B.sx[B.sx.length-1]+1:1);B.cpu.push(s.cpu);B.ram.push(s.ram);trim([B.sx,B.cpu,B.ram]);try{if(pSys)pSys.setData([B.sx,B.cpu,B.ram]);}catch(e){}const now=document.getElementById("sysNow");if(now)now.innerHTML="<span><b>"+s.cpu+"%</b> CPU</span><span><b>"+s.ram+"%</b> RAM</span><span><b>"+s.disk+"%</b> disco</span>";const ks=document.getElementById("kpiSys");if(ks)ks.textContent="CPU "+s.cpu+"% · RAM "+s.ram+"%";setSig("sigSat",s.cpu+"%",s.cpu>=90?"bad":s.cpu>=75?"warn":"");const ts=document.getElementById("tickSys");if(ts)ts.textContent="actualizado "+nowS();}
+function pushLive(l){if(!l)return;const i=B.nx.length?B.nx[B.nx.length-1]+1:1;B.nx.push(i);B.dn.push(l.down_mbps||0);B.up.push(l.up_mbps||0);try{if(pNet)pNet.setData([B.nx,B.dn,B.up]);}catch(e){}const j=B.px.length?B.px[B.px.length-1]+1:1;B.px.push(j);B.gw.push(l.ping_gateway_ms);B.nt.push(l.ping_internet_ms);B.ap.push(l.ping_app_ms);try{if(pPing)pPing.setData([B.px,B.gw,B.nt,B.ap]);}catch(e){}setMs("kpiInternet","meterNet",l.ping_internet_ms);setMs("kpiApp","meterApp",l.ping_app_ms);setMs("kpiGw","meterGw",l.ping_gateway_ms);setHop("hopGw",l.ping_gateway_ms);setHop("hopNet",l.ping_internet_ms);setHop("hopApp",l.ping_app_ms);const hops=[l.ping_gateway_ms,l.ping_internet_ms,l.ping_app_ms].filter(function(v){return v!=null&&v!=="";});const worst=hops.length?Math.max.apply(null,hops):null;setSig("sigLat",worst==null?"—":worst+" ms",worst==null?"bad":worst<80?"":worst<180?"warn":"bad");setSig("sigTr",(l.down_mbps??0)+" Mbps","");const kn=document.getElementById("kpiNet");if(kn)kn.textContent="↓ "+(l.down_mbps??0)+"  ↑ "+(l.up_mbps??0)+" Mbps";const bw=document.getElementById("bwNow");if(bw)bw.innerHTML="<span><b>"+(l.down_mbps??0)+"</b> Mbps ↓</span><span><b>"+(l.up_mbps??0)+"</b> Mbps ↑</span>";const t=nowS();["tickNet","tickBw","tickPing"].forEach(function(id){const n=document.getElementById(id);if(n)n.textContent="actualizado "+t;});}
+function logEv(m){const el=document.getElementById("events");if(!el)return;if(el.dataset.empty==="1"){el.innerHTML="";el.dataset.empty="0";}el.insertAdjacentHTML("afterbegin","<div><span>"+esc(nowS())+"</span> "+esc(m)+"</div>");while(el.children.length>12)el.removeChild(el.lastChild);}
+function renderHttp(list){list=list||[];const box=document.getElementById("httpList"),bars=document.getElementById("latBars");const mx=Math.max(1,...list.map(function(h){return h.latency_ms||0;}));const rows=[],lat=[];list.forEach(function(h){const pc=Math.max(4,Math.round((h.latency_ms||0)/mx*100));const ms=h.latency_ms==null?"—":h.latency_ms;rows.push('<div class="mon" data-name="'+esc(h.name)+'"><div class="mon-top"><h3>'+esc(h.name)+' <span class="src">HTTP</span></h3><span class="badge '+(h.ok?"ok":"bad")+'">'+(h.ok?"Operativo":"Caído")+'</span><div class="kpi sm">'+esc(ms)+'<span class="unit">ms</span></div></div><div class="small">'+esc(h.detail||"")+"</div></div>");lat.push('<div class="lrow"><div><b>'+esc(h.name)+'</b><div class="hbar"><i style="width:'+pc+"%;background:"+(h.ok?"var(--ok)":"var(--fail)")+'"></i></div></div><div class="lat-val mono">'+esc(ms)+'<span class="unit">ms</span></div></div>');});if(box)box.innerHTML=rows.join("")||'<div class="empty">Sin monitores HTTP.</div>';if(bars)bars.innerHTML=lat.join("")||'<div class="empty">Sin latencias.</div>';const chips=document.getElementById("monChips");if(chips)chips.innerHTML=list.map(function(h){const label=String(h.name||"").replace(/^⭐\s*/,"").slice(0,32);return '<button type="button" class="chip '+(h.ok?"ok":"bad")+'" data-name="'+esc(h.name)+'">'+esc(label)+"</button>";}).join("");const downN=list.filter(function(h){return !h.ok;}).length;setSig("sigErr",String(downN),downN?"bad":"");const hit=list.find(function(h){return String(h.name).indexOf("8443")>=0;});if(hit)document.getElementById("kpiAppSub").textContent=hit.detail||"";renderBanner(list);if(list.length&&Date.now()-lastUptime>300000){lastUptime=Date.now();loadUptime(list.map(function(h){return h.name;}));}}
+function renderAuto(list){const box=document.getElementById("autoList");if(!box)return;list=list||[];if(!list.length){box.innerHTML='<div class="empty">Sin automatizaciones configuradas.</div>';return;}box.innerHTML=list.map(function(a){return '<div class="card auto '+(a.ok?"":"is-down")+'"><div class="auto-top"><h3>'+esc(a.name)+'</h3><span class="badge '+(a.ok?"ok":"bad")+'">'+(a.ok?"OK":"Fallo")+'</span></div><div class="small" style="margin-top:8px">'+esc(a.detail||"")+"</div></div>";}).join("");}
+const ROLE_DEFS=[{id:"all",label:"Todos"},{id:"gateway",label:"Router"},{id:"switch",label:"Switch"},{id:"ap",label:"Access point"},{id:"printer",label:"Impresora"},{id:"camera",label:"Cámara"},{id:"server",label:"Servidor"},{id:"linux",label:"Linux"},{id:"pc",label:"PC"},{id:"mobile",label:"Móvil"}];
+const ROLE_LABEL={printer:"Impresora",ap:"Access point",switch:"Switch",pc:"PC",server:"Servidor",gateway:"Router / Gateway",firewall:"Firewall",camera:"Cámara / NVR",mobile:"Móvil",linux:"Linux",unknown:"Desconocido"};
+let ROLE_FILTER="all";
+function hostRole(h){if(h&&h.role)return h.role;const t=String((h&&h.device_type)||"").toLowerCase();if(t.indexOf("impres")>=0)return "printer";if(t.indexOf("access")>=0)return "ap";if(t.indexOf("switch")>=0)return "switch";if(t.indexOf("servidor")>=0)return "server";if(t.indexOf("pc")>=0||t.indexOf("windows")>=0||t.indexOf("laptop")>=0)return "pc";if(t.indexOf("router")>=0||t.indexOf("gateway")>=0)return "gateway";if(t.indexOf("cámara")>=0||t.indexOf("camara")>=0||t.indexOf("nvr")>=0)return "camera";if(t.indexOf("móvil")>=0||t.indexOf("movil")>=0)return "mobile";if(t.indexOf("firewall")>=0)return "firewall";if(t.indexOf("linux")>=0)return "linux";return "unknown";}
+function typeLabel(h){const role=hostRole(h);if(ROLE_LABEL[role])return ROLE_LABEL[role];return String((h&&h.device_type)||"—").replace(/[\u{1F300}-\u{1FAFF}\u2600-\u27BF]/gu,"").trim()||"—";}
+function paintRoles(){const box=document.getElementById("roleBar");if(!box)return;box.innerHTML=ROLE_DEFS.map(function(r){const n=r.id==="all"?DEV_CACHE.length:DEV_CACHE.filter(function(h){return hostRole(h)===r.id;}).length;return '<button type="button" data-role="'+r.id+'" class="'+(ROLE_FILTER===r.id?"on":"")+'">'+esc(r.label)+"<em>"+n+"</em></button>";}).join("");}
+function filterDevs(){const q=(document.getElementById("devFilter").value||"").toLowerCase();let shown=0;document.querySelectorAll("#netBody tr[data-role]").forEach(function(tr){const roleOk=ROLE_FILTER==="all"||tr.getAttribute("data-role")===ROLE_FILTER;const textOk=!q||tr.textContent.toLowerCase().indexOf(q)>=0;const on=roleOk&&textOk;tr.style.display=on?"":"none";if(on)shown++;});const empty=document.getElementById("devEmpty");if(empty)empty.hidden=shown>0||!DEV_CACHE.length;}
+function renderDevices(hosts){DEV_CACHE=hosts||[];const tb=document.getElementById("netBody");document.getElementById("kpiDevices").innerHTML=DEV_CACHE.length+'<span class="unit">online</span>';document.getElementById("scanInfo").textContent=DEV_CACHE.length?DEV_CACHE.length+" equipos · "+nowS():"Sin observación";paintRoles();if(!DEV_CACHE.length){tb.innerHTML='<tr><td colspan="8" class="empty">Sin observación de LAN. Impresora, access point, switch, PC y servidor aparecen aquí al escanear en la empresa.</td></tr>';noteLan([]);renderPosture();return;}tb.innerHTML=DEV_CACHE.map(function(h){const lat=h.latency_ms!=null?h.latency_ms+" ms":"—";const c=h.latency_ms==null?"var(--mut)":h.latency_ms<50?"var(--ok)":h.latency_ms<150?"var(--warn)":"var(--fail)";const w=h.latency_ms==null?0:Math.max(8,Math.min(100,100-Math.min(h.latency_ms,200)/2));const role=hostRole(h);return '<tr data-role="'+esc(role)+'" data-ip="'+esc(h.ip)+'"><td><a href="#" class="iplink" data-ip="'+esc(h.ip)+'">'+esc(h.ip)+'</a></td><td>'+esc(h.hostname||"—")+'</td><td class="small mono">'+esc(h.mac||"—")+'</td><td>'+esc(h.vendor||"—")+'</td><td><span class="badge">'+esc(typeLabel(h))+'</span></td><td><div class="latcell"><b style="color:'+c+'">'+esc(lat)+'</b><div class="hbar"><i style="width:'+w+"%;background:"+c+'"></i></div></div></td><td class="small mono">'+esc((h.open_ports||[]).join(", ")||"—")+'</td><td><span class="badge '+(h.online?"ok":"bad")+'">'+(h.online?"Online":"Offline")+"</span></td></tr>";}).join("")+'<tr id="devEmpty" hidden><td colspan="8" class="empty">Ningún equipo de este tipo en el último inventario.</td></tr>';filterDevs();noteLan(DEV_CACHE);renderPosture();topoStatus();}
+function renderFaults(list){list=list||[];const box=document.getElementById("faults");const crit=list.filter(function(f){return f.nivel==="CRITICO";}).length;const warn=list.filter(function(f){return f.nivel==="WARN";}).length;const ok=list.length-crit-warn;const fc=document.getElementById("fCrit"),fw=document.getElementById("fWarn"),fo=document.getElementById("fOk");if(fc){fc.textContent=crit;fc.dataset.lvl=crit?"bad":"ok";}if(fw){fw.textContent=warn;fw.dataset.lvl=warn?"warn":"ok";}if(fo)fo.textContent=ok;const sevC=document.getElementById("sevC"),sevW=document.getElementById("sevW"),sevO=document.getElementById("sevO");if(sevC)sevC.textContent=crit;if(sevW)sevW.textContent=warn;if(sevO)sevO.textContent=ok;const badge=document.getElementById("badgeFallos");if(badge){const n=crit+warn;badge.hidden=n===0;badge.textContent=n;}if(box)box.innerHTML=list.map(function(f){const cls=f.nivel==="CRITICO"?"crit":f.nivel==="WARN"?"w":"good";const b=f.nivel==="CRITICO"?"bad":f.nivel==="WARN"?"warn":"ok";return '<div class="ev '+cls+'"><span class="badge '+b+'">'+esc(f.nivel)+'</span><div class="ev-msg">'+esc(f.msg)+"</div></div>";}).join("")||'<div class="empty">Sin hallazgos.</div>';}
+function renderBanner(http){const b=document.getElementById("banner"),t=document.getElementById("bannerTxt"),pills=document.getElementById("statPills");if(!b||!t)return;http=http||[];const down=http.filter(function(h){return !h.ok;});if(!http.length){b.className="banner warn";t.textContent="Sin datos de páginas aún";if(pills)pills.innerHTML="";return;}if(!down.length){b.className="banner ok";t.textContent="Todos los sistemas operativos";}else if(down.length<http.length){b.className="banner warn";t.textContent="Degradación parcial · "+down.map(function(h){return String(h.name).replace(/^⭐\s*/,"");}).join(", ");}else{b.className="banner bad";t.textContent="Incidente mayor · todas las páginas caídas";}if(pills)pills.innerHTML='<span class="pill">'+(http.length-down.length)+"/"+http.length+' operativos</span><span class="pill">'+down.length+" caídos</span>";}
+async function loadUptime(names){const box=document.getElementById("uptime");if(!box||!names.length)return;box.innerHTML=names.map(function(n,i){return '<div class="up-row"><div class="up-meta"><b>'+esc(n)+'</b><span class="small" id="up-'+i+'">cargando…</span></div><div class="ubars" id="ub-'+i+'"></div></div>';}).join("");for(let i=0;i<names.length;i++){try{const h=await getJ("/api/history?name="+encodeURIComponent(names[i])+"&hours=72");const last=h.slice(-90);const okN=last.filter(function(x){return x.ok;}).length;const pct=last.length?Math.round(okN/last.length*100):0;document.getElementById("ub-"+i).innerHTML=last.map(function(x){return '<i class="'+(x.ok?"g":"r")+'" title="'+esc(new Date(x.ts*1000).toLocaleString())+'"></i>';}).join("")||'<span class="small">sin historial</span>';document.getElementById("up-"+i).innerHTML='<b class="up-pct">'+pct+"%</b> · "+last.length+" chequeos";}catch(e){const e2=document.getElementById("up-"+i);if(e2)e2.textContent="sin historial";}}}
+let HEADER_CACHE=[];
+function noteLan(hosts){const box=document.getElementById("lanDelta");if(!box)return;hosts=hosts||[];if(!hosts.length){box.innerHTML="";return;}let prev=[];try{prev=JSON.parse(localStorage.getItem("lanSeen")||"[]");}catch(e){}const now=hosts.map(function(h){return h.ip;});const prevSet=new Set(prev),nowSet=new Set(now);const added=prev.length?now.filter(function(ip){return !prevSet.has(ip);}):[];const gone=prev.filter(function(ip){return !nowSet.has(ip);});localStorage.setItem("lanSeen",JSON.stringify(now));if(!prev.length){box.innerHTML='<span class="small">Inventario guardado. El próximo escaneo marca altas y bajas.</span>';return;}const bits=added.map(function(ip){return '<span class="badge warn">Nuevo '+esc(ip)+"</span>";}).concat(gone.map(function(ip){return '<span class="badge bad">Ausente '+esc(ip)+"</span>";}));box.innerHTML=bits.join("")||'<span class="badge ok">Inventario estable</span>';}
+function renderPosture(){const box=document.getElementById("posture");if(!box)return;const watch=[[3389,"RDP"],[445,"SMB"],[22,"SSH"],[80,"HTTP"],[23,"Telnet"]];const counts={};(DEV_CACHE||[]).forEach(function(h){(h.open_ports||[]).forEach(function(p){counts[p]=(counts[p]||0)+1;});});const ports=watch.map(function(w){const n=counts[w[0]]||0;const cls=!n?"ok":(w[0]===23||w[0]===445||w[0]===3389?"warn":"ok");return '<span class="badge '+cls+'">'+w[1]+" "+n+"</span>";}).join("");const certs=(HEADER_CACHE||[]).filter(function(h){return h.cert_days!=null&&Number(h.cert_days)<30;});const certHtml=certs.length?certs.map(function(h){const d=Number(h.cert_days);return '<div class="lrow"><b>'+esc(h.name||h.url)+'</b><span class="badge '+(d<14?"bad":"warn")+'">'+d+" días</span></div>";}).join(""):'<div class="small">Ningún certificado por debajo de 30 días.</div>';const hasDev=(DEV_CACHE||[]).length>0;let score=hasDev?100:null;if(hasDev){(DEV_CACHE||[]).forEach(function(h){(h.open_ports||[]).forEach(function(p){if(p===3389||p===445||p===23)score-=6;});});}certs.forEach(function(h){if(score==null)score=100;score-=Number(h.cert_days)<14?12:6;});const ring=document.getElementById("secRing"),num=document.getElementById("secNum"),lab=document.getElementById("secLabel");if(score==null){if(ring)ring.style.cssText="--p:0;--c:var(--mut)";if(num)num.textContent="—";if(lab)lab.textContent="Escanea la red para calificar";}else{score=Math.max(0,Math.min(100,score));const col=score>=90?"var(--ok)":score>=70?"var(--warn)":"var(--fail)";if(ring)ring.style.cssText="--p:"+score+";--c:"+col;if(num)num.textContent=score;if(lab)lab.textContent=score>=90?"Postura sólida":score>=70?"Requiere atención":"Riesgo en la LAN";}box.innerHTML='<div class="chips">'+ports+'</div><div style="margin-top:8px">'+certHtml+"</div>";}
+async function loadDNS(){const el=document.getElementById("dnsList");if(!el)return;el.innerHTML='<div class="empty">Resolviendo…</div>';try{const r=await getJ("/api/network/dns");const rows=r.rows||[];const mx=Math.max(1,...rows.map(function(x){return x.ms||0;}));el.innerHTML=rows.map(function(x){const pc=x.ms?Math.max(6,Math.round(x.ms/mx*100)):6;return '<div class="lrow"><div><b>'+esc(x.name)+'</b><div class="small mono">'+esc(x.ip||x.error||"—")+'</div><div class="hbar"><i style="width:'+pc+"%;background:"+(x.ok?"var(--ok)":"var(--fail)")+'"></i></div></div><div class="lat-val mono">'+(x.ms==null?"—":x.ms)+'<span class="unit">ms</span></div></div>';}).join("")||'<div class="empty">Sin nombres públicos en la configuración.</div>';}catch(e){el.innerHTML='<div class="empty">No se pudo medir el DNS.</div>';}}
+function stepTab(dir){const cur=document.querySelector("#tabs button.on");let i=TAB_ORDER.indexOf(cur&&cur.dataset.t);if(i<0)i=0;const n=i+dir;if(n<0||n>=TAB_ORDER.length)return;const sec=document.getElementById("tab-"+TAB_ORDER[n]);if(sec)sec.dataset.dir=dir>0?"next":"prev";gotoTab(TAB_ORDER[n]);}
+function renderHeaders(list){const box=document.getElementById("headersList");if(!box)return;HEADER_CACHE=list||[];list=HEADER_CACHE;renderPosture();if(!list.length){box.innerHTML='<div class="empty">Sin auditoría todavía.</div>';return;}box.innerHTML=list.map(function(h){const score=Math.max(0,Math.min(100,Number(h.score)||0));const col=score>=80?"var(--ok)":score>=50?"var(--warn)":"var(--fail)";const cls=score>=80?"ok":score>=50?"warn":"bad";return '<div class="hdr"><div class="ring" style="--p:'+score+";--c:"+col+'"><span>'+score+'</span></div><div><h3>'+esc(h.name||h.url)+'</h3><span class="badge '+cls+'">'+score+'/100</span> <span class="badge '+(h.ok?"ok":"bad")+'">'+(h.ok?"Headers OK":"Revisar")+'</span><div class="small">server '+esc(h.server||"—")+" · cert "+esc(h.cert_days??"—")+" días · "+esc(h.latency_ms)+" ms</div><div class=\"issues\">"+((h.issues||[]).map(esc).join(" · "))+'</div><div class="passed">'+((h.passed||[]).slice(0,3).map(esc).join(" · "))+"</div></div></div>";}).join("");}
+async function getJ(u){const r=await fetch(u);if(!r.ok)throw new Error(r.status+" "+u);return r.json();}
+async function loadHeaders(){try{renderHeaders(await getJ("/api/headers/status"));}catch(e){}}
+async function loadFaults(){try{renderFaults(await getJ("/api/faults"));}catch(e){}}
+async function runSniff(){document.getElementById("secInfo").textContent="Capturando 8s…";try{const r=await getJ("/api/security/sniff?seconds=8");if(!r.disponible){document.getElementById("talkers").textContent=r.msg;document.getElementById("secInfo").textContent=r.msg;return;}const talkers=r.top_talkers||[];const max=Math.max(1,...talkers.map(function(t){return t.bytes||0;}));document.getElementById("talkers").innerHTML=(talkers.length?talkers.map(function(t){const pc=Math.round((t.bytes||0)/max*100);return '<div class="lrow"><div><b class="mono">'+esc(t.ip)+'</b><div class="hbar"><i style="width:'+pc+'%;background:#9eb6ce"></i></div></div><div class="mono">'+((t.bytes||0)/1024).toFixed(1)+" KB</div></div>";}).join(""):'<div class="empty">Sin paquetes.</div>')+'<div class="small" style="margin-top:8px"><b>'+esc(r.paquetes)+' paquetes</b></div>'+(r.alertas||[]).map(function(a){return '<div class="issues">'+esc(a)+"</div>";}).join("");document.getElementById("secInfo").textContent=r.paquetes+" paquetes en "+r.segundos+"s";loadConnections();}catch(e){document.getElementById("secInfo").textContent="Error sniff: "+e;}}
+async function loadConnections(){try{const r=await getJ("/api/security/connections");const estados=Object.entries(r.por_estado||{}).map(function(kv){return esc(kv[0])+" "+kv[1];}).join(" · ");document.getElementById("conns").innerHTML='<div class="kpi sm">'+esc(r.total)+'<span class="unit">sockets</span></div><div class="small">'+estados+"</div>"+(r.top_remote||[]).slice(0,8).map(function(t){return '<div class="lrow"><div class="mono">'+esc(t.ip)+' <span class="small">'+esc(t.host||"")+'</span></div><b>'+esc(t.conexiones)+"</b></div>";}).join("")+(r.sospechosas||[]).slice(0,5).map(function(s){return '<div class="issues">'+esc(s)+"</div>";}).join("");loadInsecure();}catch(e){}}
+async function loadInsecure(){try{const r=await getJ("/api/security/insecure");const el=document.getElementById("insec");if(!r.hallazgos||!r.hallazgos.length){el.innerHTML='<span class="badge ok">Seguro</span><div class="small" style="margin-top:6px">'+esc(r.resumen)+"</div>";return;}el.innerHTML='<span class="badge '+(r.nivel==="CRITICO"?"bad":"warn")+'">'+esc(r.nivel)+"</span> "+esc(r.total_ips)+' destinos<div style="margin-top:8px">'+r.hallazgos.slice(0,8).map(function(h){return '<div class="lrow"><div><b class="mono">'+esc(h.ip)+'</b> <span class="small">'+esc(h.host||"—")+"</span></div><div class=\"mono\">:"+esc((h.puertos||[]).join(","))+" ×"+esc(h.conexiones)+"</div></div>";}).join("")+"</div>";}catch(e){}}
+async function loadLibs(){try{const r=await getJ("/api/security/libraries");const L=r.libraries||{};const rows=[["Scapy","scapy"],["Nmap","nmap"],["Requests","requests"],["BS4","bs4"],["Pyshark","pyshark"],["Paramiko","paramiko"],["Crypto","cryptography"],["Volatility","volatility"],["Shodan","shodan"]];document.getElementById("libs").innerHTML='<span class="badge ok">Socket</span> '+rows.map(function(x){return '<span class="badge '+(L[x[1]]?"ok":"bad")+'">'+x[0]+"</span>";}).join(" ")+'<div class="small" style="margin-top:8px">'+esc(r.pyshark&&r.pyshark.msg||"")+"</div>";}catch(e){}}
+async function cyberNmap(){const t=document.getElementById("cyberTarget").value;document.getElementById("cyNmap").textContent="Escaneando "+t+" …";document.getElementById("cyberInfo").textContent="";try{const r=await getJ("/api/cyber/nmap?target="+encodeURIComponent(t));const open=r.open||[];if(open.length){document.getElementById("cyNmap").innerHTML='<div class="small" style="margin-bottom:6px">Motor '+esc(r.motor||"—")+"</div><table><thead><tr><th>Puerto</th><th>Estado</th><th>Banner</th></tr></thead><tbody>"+open.map(function(o){return '<tr><td class="mono">'+esc(o.puerto)+"</td><td>"+esc(o.state)+'</td><td class="small">'+esc(o.banner||"")+"</td></tr>";}).join("")+"</tbody></table>";return;}const hosts=(r.hosts||[]).map(function(h){return esc(h.host)+" "+esc(h.state);}).join("<br>");document.getElementById("cyNmap").innerHTML="<b>Motor:</b> "+esc(r.motor||"—")+"<br>"+(hosts||esc(r.error||"Sin puertos"));}catch(e){}}
+async function cyberPage(){document.getElementById("cyPage").textContent="Analizando…";try{const r=await getJ("/api/cyber/page-intel?url="+encodeURIComponent("https://inklusiva.co/"));document.getElementById("cyPage").innerHTML=esc(r.title||r.error||"")+" · tech: "+esc((r.tech||[]).join(", "))+" · forms: "+esc(r.forms??"—")+" · login: "+esc(r.login_forms??"—");}catch(e){}}
+async function cyberSSH(){const t=document.getElementById("cyberTarget").value;try{const r=await getJ("/api/cyber/ssh-audit?host="+encodeURIComponent(t));document.getElementById("cyMisc").textContent="SSH "+t+": "+(r.banner||r.detalle||r.nota||JSON.stringify(r));}catch(e){}}
+async function cyberCert(){try{const r=await getJ("/api/cyber/cert?host=inklusiva.co");document.getElementById("cyMisc").textContent="Cert: "+(r.expira_dias??r.error)+" días · "+(r.firma||"")+" · "+((r.alertas||[]).join(", "));}catch(e){}}
+async function cyberProc(){try{const r=await getJ("/api/cyber/process-audit");document.getElementById("cyMisc").innerHTML=esc(r.veredicto||r.error||"")+"<br>"+(r.sospechosos||[]).map(function(s){return esc(s.pid)+" "+esc(s.name);}).join("<br>");}catch(e){}}
+async function cyberShodan(){const t=document.getElementById("cyberTarget").value.trim();const priv=/^(10\.|192\.168\.|172\.(1[6-9]|2\d|3[01])\.|127\.|169\.254\.)/.test(t);if(priv){document.getElementById("cyMisc").innerHTML='Shodan solo audita IPs públicas. Esta es red local.<br><button class="ghost" type="button" onclick="myIP()">Ver mi IP pública</button>';return;}document.getElementById("cyMisc").textContent="Consultando Shodan para "+t+" …";try{const r=await getJ("/api/cyber/shodan?ip="+encodeURIComponent(t));const d=r.data||{};if(!r.configurado){document.getElementById("cyMisc").textContent=r.msg||r.error;return;}if(r.error){document.getElementById("cyMisc").textContent="Shodan: "+r.error;return;}const vulns=[...new Set((d.data||[]).flatMap(function(x){return Object.keys(x.vulns||{});}))];document.getElementById("cyMisc").innerHTML="<b>"+esc(d.ip_str||t)+"</b> · "+esc(d.org||"—")+" · "+esc(d.os||"")+"<br>Puertos: "+esc((d.data||[]).map(function(x){return x.port;}).join(", ")||"—")+"<br>Vulns: "+esc(vulns.join(", ")||"ninguna reportada");}catch(e){}}
+async function myIP(){try{const r=await (await fetch("https://api.ipify.org?format=json")).json();document.getElementById("cyberTarget").value=r.ip;cyberShodan();}catch(e){document.getElementById("cyMisc").textContent="No pude obtener la IP pública.";}}
+async function scanNet(quick){const cidr=document.getElementById("cidr").value;document.getElementById("scanInfo").textContent="Procesando "+cidr+" …";const url=quick?"/api/network/live?cidr="+encodeURIComponent(cidr):"/api/network/scan?cidr="+encodeURIComponent(cidr);try{renderDevices((await getJ(url)).hosts||[]);loadFaults();if(!quick)loadTopo();}catch(e){document.getElementById("scanInfo").textContent="No se pudo escanear";}}
+function clearSeries(){["sx","cpu","ram","nx","dn","up","px","gw","nt","ap"].forEach(function(k){B[k].length=0;});}
+async function setRange(btn){if(!btn)return;document.querySelectorAll("#range button").forEach(function(b){b.classList.toggle("on",b===btn);});const hours=btn.dataset.h||"1";const mins=+(btn.dataset.min||60);const lh=await getJ("/api/live/history?hours="+hours);const cut=(Date.now()/1000)-mins*60;let rows=(Array.isArray(lh)?lh:[]).filter(function(p){return !p.ts||p.ts>=cut;});if(!rows.length)rows=Array.isArray(lh)?lh:[];if(rows.length>MAX){const step=Math.ceil(rows.length/MAX);rows=rows.filter(function(_,i){return i%step===0;});}clearSeries();rows.forEach(function(p,i){B.sx.push(i);B.cpu.push(p.cpu);B.ram.push(p.ram);B.nx.push(i);B.dn.push(p.down_mbps||0);B.up.push(p.up_mbps||0);B.px.push(i);B.gw.push(p.ping_gateway_ms);B.nt.push(p.ping_internet_ms);B.ap.push(p.ping_app_ms);});try{if(pSys)pSys.setData([B.sx,B.cpu,B.ram]);if(pNet)pNet.setData([B.nx,B.dn,B.up]);if(pPing)pPing.setData([B.px,B.gw,B.nt,B.ap]);}catch(e){console.warn(e);}sizePlots();}
+async function loadInitial(){try{await setRange(document.querySelector("#range button.on"));}catch(e){console.warn(e);}try{const s=await getJ("/api/status");const last=s.last||[],cache=s.cache||{};renderHttp(last.filter(function(x){return x.category==="http";}).map(function(x){return {name:x.name,ok:!!x.ok,latency_ms:x.latency_ms,detail:x.detail};}));renderAuto(last.filter(function(x){return x.category==="automation";}).map(function(x){return {name:x.name,ok:!!x.ok,detail:x.detail};}));if(cache.devices&&cache.devices.length)renderDevices(cache.devices);else if(s.devices&&s.devices.hosts)renderDevices(s.devices.hosts);if(cache.headers&&cache.headers.length)renderHeaders(cache.headers);else loadHeaders();if(cache.faults&&cache.faults.length)renderFaults(cache.faults);else loadFaults();loadConnections();beat();logEv("dashboard cargado");}catch(e){console.error(e);}}
+let ws=null;
+function connectWS(){const proto=location.protocol==="https:"?"wss":"ws";ws=new WebSocket(proto+"://"+location.host+"/ws");ws.onmessage=function(ev){beat();let m;try{m=JSON.parse(ev.data);}catch(e){return;}if(m.type==="http"){renderHttp(m.data);logEv("páginas: "+m.data.filter(function(h){return h.ok;}).length+"/"+m.data.length+" OK");}else if(m.type==="automations")renderAuto(m.data);else if(m.type==="system")pushSys(m.data);else if(m.type==="live")pushLive(m.data);else if(m.type==="devices")renderDevices(m.data);else if(m.type==="headers")renderHeaders(m.data);else if(m.type==="faults")renderFaults(m.data);else if(m.type==="incidents"){renderIncidents(m.data);beepIfNew(m.data);}else if(m.type==="init"){const d=m.data||{};if(d.http)renderHttp(d.http);if(d.automations)renderAuto(d.automations);if(d.devices)renderDevices(d.devices);if(d.headers)renderHeaders(d.headers);if(d.faults)renderFaults(d.faults);if(d.incidents)renderIncidents(d.incidents);}};ws.onclose=function(){setLive("RECONECTANDO","warn");setTimeout(connectWS,3000);};ws.onerror=function(){try{document.getElementById("beat").textContent="WS bloqueado — modo poll";}catch(_){}};ws.onopen=function(){setLive("EN VIVO","ok");};}
+setInterval(function(){document.getElementById("clock").textContent=new Date().toLocaleString();},1000);
+setInterval(function(){if(Date.now()-lastMsg>7000){setLive("POLL 2.5s","warn");fetch("/api/live").then(function(r){return r.json();}).then(function(l){if(l&&l.ts){pushLive(l);beat();}}).catch(function(){});fetch("/api/status").then(function(r){return r.json();}).then(function(s){const c=s.cache||{},last=s.last||[];if(c.system)pushSys(c.system);if(Date.now()-lastFull>10000){lastFull=Date.now();renderHttp(last.filter(function(x){return x.category==="http";}).map(function(x){return {name:x.name,ok:!!x.ok,latency_ms:x.latency_ms,detail:x.detail};}));renderAuto(last.filter(function(x){return x.category==="automation";}).map(function(x){return {name:x.name,ok:!!x.ok,detail:x.detail};}));if(c.devices&&c.devices.length)renderDevices(c.devices);if(c.headers&&c.headers.length)renderHeaders(c.headers);if(c.faults&&c.faults.length)renderFaults(c.faults);if(c.incidents)renderIncidents(c.incidents);}}).catch(function(){});}},2500);
+setInterval(function(){const a=document.getElementById("autoLive");if(a&&a.checked)scanNet(true);},15000);
+setInterval(loadFaults,30000);
+function toggleTheme(){const h=document.documentElement;const l=h.getAttribute("data-theme")==="light"?"":"light";if(l)h.setAttribute("data-theme",l);else h.removeAttribute("data-theme");try{localStorage.setItem("theme",l||"dark");}catch(e){}const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute("content",l?"#f4f6f8":"#07080b");rebuildPlots();}
+try{if(localStorage.getItem("theme")==="light"){document.documentElement.setAttribute("data-theme","light");const meta=document.querySelector('meta[name="theme-color"]');if(meta)meta.setAttribute("content","#f4f6f8");}}catch(e){}
+function openDrawer(t,html){const d=document.getElementById("drawer");document.getElementById("drawerTitle").textContent=t;document.getElementById("drawerBody").innerHTML=html;d.classList.add("on");d.removeAttribute("inert");d.setAttribute("aria-hidden","false");}
+function closeDrawer(){const d=document.getElementById("drawer");d.classList.remove("on");d.setAttribute("inert","");d.setAttribute("aria-hidden","true");}
+const PHYS={printer:["Tóner, papel, atasco y tapas.","SNMP Printer-MIB"],ap:["Clientes asociados y radio.","SNMP o controlador"],switch:["Puertos, errores y vecinos.","SNMP · LLDP"],pc:["CPU, memoria y disco.","Agente"],server:["Recursos del servicio.","Agente o SNMP"],gateway:["Enlace y latencia del salto.","Ping"],firewall:["Sesiones y políticas.","SNMP o API"],camera:["Señal y grabación.","SNMP o NVR"],mobile:["Presencia en la LAN.","ARP"],linux:["Carga del equipo.","Agente"],unknown:["Estado físico aún sin fuente.","Pendiente"]};
+function drow(label,value){return '<div class="lrow"><span class="small">'+esc(label)+"</span><b>"+esc(value||"—")+"</b></div>";}
+const TOPO_ICON={
+cloud:'<path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 9.1 4.5 4.5 0 0 0 7 18z"/>',
+gateway:'<circle cx="12" cy="12" r="8.5"/><path d="M12 4.8v4.4M10.4 6.4 12 4.8l1.6 1.6M12 19.2v-4.4M10.4 17.6 12 19.2l1.6-1.6M4.8 12h4.4M7.6 10.4 9.2 12l-1.6 1.6M19.2 12h-4.4M16.4 10.4 14.8 12l1.6 1.6"/>',
+firewall:'<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M3 9.7h18M3 14.3h18M9 5v4.7M15 5v4.7M6 9.7v4.6M12 9.7v4.6M18 9.7v4.6M9 14.3V19M15 14.3V19"/>',
+switch:'<rect x="2.5" y="7" width="19" height="10" rx="1.2"/><path d="M6.5 10.2h8M12.8 8.6l1.7 1.6-1.7 1.6M17.5 13.8h-8M11.2 12.2l-1.7 1.6 1.7 1.6"/>',
+segment:'<rect x="2.5" y="7" width="19" height="10" rx="1.2"/><path d="M6.5 10.2h8M12.8 8.6l1.7 1.6-1.7 1.6M17.5 13.8h-8M11.2 12.2l-1.7 1.6 1.7 1.6"/>',
+ap:'<rect x="5" y="14" width="14" height="5" rx="2.5"/><path d="M12 14v-2.2M8.6 9.4a4.8 4.8 0 0 1 6.8 0M6.2 7a8.2 8.2 0 0 1 11.6 0"/>',
+server:'<rect x="6" y="3" width="12" height="18" rx="1"/><path d="M9 7h6M9 10h6M9 13h6"/><circle cx="12" cy="17.2" r=".9"/>',
+linux:'<rect x="3" y="5" width="18" height="14" rx="1"/><path d="M7 10l3 2-3 2M12.5 14.5H17"/>',
+pc:'<rect x="3" y="4" width="18" height="12" rx="1"/><path d="M9 20h6M12 16v4"/>',
+printer:'<path d="M7 9V4h10v5"/><rect x="3.5" y="9" width="17" height="7.5" rx="1"/><path d="M7 14h10v6H7z"/><path d="M17 11.5h.01"/>',
+camera:'<path d="M4 5.5h16v3H4z"/><path d="M6 8.5a6 6 0 0 0 12 0"/><circle cx="12" cy="11.4" r="2"/>',
+mobile:'<rect x="7.5" y="3" width="9" height="18" rx="1.6"/><path d="M11 17.8h2"/>',
+unknown:'<circle cx="12" cy="12" r="8.5"/><path d="M9.8 9.6a2.3 2.3 0 1 1 3.2 2.1c-.7.3-1 .8-1 1.5M12 16.4v.01"/>'};
+const TOPO_ZONE=[["switch","Switches"],["ap","Access points"],["firewall","Firewalls"],["server","Servidores"],["linux","Linux / SSH"],["camera","Cámaras / NVR"],["printer","Impresoras"],["pc","PC"],["mobile","Móviles"],["unknown","Sin clasificar"]];
+let TOPO={nodes:[],links:[]},TOPO_VB=null,TOPO_BOX=null,TOPO_HOSTS={};
+function topoIcon(kind,x,y,s){return '<g class="ico k-'+esc(kind)+'" transform="translate('+(x-s/2)+","+(y-s/2)+") scale("+(s/24)+')">'+(TOPO_ICON[kind]||TOPO_ICON.unknown)+"</g>";}
+function topoShort(s,n){s=String(s||"");s=s.replace(/\.inklusiva\.co$/i,"").replace(/\.local$/i,"");return s.length>n?s.slice(0,n-1)+"…":s;}
+function topoState(n){const h=TOPO_HOSTS[n.ip]||(DEV_CACHE||[]).find(function(x){return x.ip===n.ip;});const online=h?h.online!==false:n.online!==false;const st=(h&&h.physical&&h.physical.state)||n.state||"ok";return online?st:"fail";}
+function topoBrand(v){v=String(v||"");if(/hewlett packard/i.test(v))return "HPE";if(/^desconocido$/i.test(v))return "";v=v.replace(/^(hangzhou|shenzhen|guangdong|beijing|shanghai)\s+/i,"").replace(/[,.]?\s+(co\b|inc\b|gmbh|corporate|corporation|corp\b|ltd\b|s\.a\b|llc|technology|technologies|digital|software|server|solutions|electronics|computer)[\s\S]*$/i,"");return topoShort(v.split(/\s+/).slice(0,2).join(" "),13);}
+function topoNode(n,x,y){const st=topoState(n);const off=st==="fail"&&(TOPO_HOSTS[n.ip]||n).online===false;const title=[n.label,n.ip,n.type||n.kind,n.vendor,n.summary].filter(Boolean).join(" · ");return '<g class="node'+(off?" off":"")+'" data-ip="'+esc(n.ip||"")+'" data-kind="'+esc(n.kind)+'" tabindex="0" transform="translate('+x+","+y+')"><title>'+esc(title)+'</title><rect class="tile" x="-24" y="-24" width="48" height="48" rx="5"/>'+topoIcon(n.kind,0,0,28)+'<circle class="dot '+st+(st==="fail"?" pulse":"")+'" cx="20" cy="-20" r="5"/>'+(n.port!=null?'<text class="port" x="-22" y="-28">p'+esc(n.port)+"</text>":"")+'<text class="lbl" y="38">'+esc(n.label&&n.label!==n.ip?topoShort(n.label,15):n.ip||n.label||"")+'</text><text class="ip" y="50">'+esc(n.label&&n.label!==n.ip?n.ip||"":topoBrand(n.vendor))+"</text></g>";}
+function topoLayout(data){const nodes=data.nodes||[];const by={};nodes.forEach(function(n){by[n.id]=n;});const kids={};nodes.forEach(function(n){if(n.parent){(kids[n.parent]=kids[n.parent]||[]).push(n);}});const CELL_W=96,CELL_H=92,COLS=4,GAP=22;const segs=nodes.filter(function(n){return n.kind==="segment";});const columns=[];segs.forEach(function(s){const direct=kids[s.id]||[];const zones=[];const swWith=direct.filter(function(n){return n.kind==="switch"&&(kids[n.id]||[]).length;});swWith.forEach(function(sw){zones.push({title:"Switch "+topoShort(sw.label,18),head:sw,items:(kids[sw.id]||[]).slice().sort(function(a,b){return String(a.kind).localeCompare(b.kind);})});});TOPO_ZONE.forEach(function(z){const items=direct.filter(function(n){return n.kind===z[0]&&swWith.indexOf(n)<0;});if(items.length)zones.push({title:z[1],items:items});});zones.forEach(function(z){const n=z.items.length;z.cols=Math.max(1,Math.min(COLS,n));z.rows=Math.ceil(n/z.cols);z.w=z.cols*CELL_W+20;z.h=(z.head?100:0)+z.rows*CELL_H+52;});const MAXW=Math.max(900,Math.min(2600,zones.reduce(function(a,z){return a+z.w+GAP;},0)));const rows=[[]];let rw=0;zones.forEach(function(z){if(rw+z.w>MAXW&&rows[rows.length-1].length){rows.push([]);rw=0;}rows[rows.length-1].push(z);rw+=z.w+GAP;});const width=Math.max(320,Math.max.apply(null,rows.map(function(r){return r.reduce(function(a,z){return a+z.w+GAP;},-GAP);}).concat([0])));columns.push({seg:s,rows:rows,width:width});});let x=40;const pos={};const out={zones:[],links:[],nodes:[],segs:[]};const SEG_Y=300,BUS_Y=372,ZONE_Y=410;columns.forEach(function(c){const cx=x+c.width/2;pos[c.seg.id]={x:cx,y:SEG_Y};out.segs.push({n:c.seg,x:cx,y:SEG_Y});let y=ZONE_Y;const drops=[];c.rows.forEach(function(r){const rwid=r.reduce(function(a,z){return a+z.w+GAP;},-GAP);let zx=x+(c.width-rwid)/2;const rh=Math.max.apply(null,r.map(function(z){return z.h;}));r.forEach(function(z){out.zones.push({x:zx,y:y,w:z.w,h:z.h,title:z.title+" · "+z.items.length});drops.push({x:zx+z.w/2,y:y});let iy=y+64;if(z.head){const hx=zx+z.w/2;pos[z.head.id]={x:hx,y:y+58};out.nodes.push({n:z.head,x:hx,y:y+58});iy=y+140;}z.items.forEach(function(it,i){const ix=zx+10+CELL_W/2+(i%z.cols)*CELL_W;const iyy=iy+Math.floor(i/z.cols)*CELL_H;pos[it.id]={x:ix,y:iyy};out.nodes.push({n:it,x:ix,y:iyy});if(z.head)out.links.push({d:"M"+(zx+z.w/2)+","+(y+82)+" V"+(iy-30)+" H"+ix+" V"+(iyy-24),k:"access"});});zx+=z.w+GAP;});y+=rh+GAP*2;});const xs=drops.map(function(d){return d.x;});if(xs.length){out.links.push({d:"M"+Math.min(cx,Math.min.apply(null,xs))+","+BUS_Y+" H"+Math.max(cx,Math.max.apply(null,xs)),k:"trunk"});out.links.push({d:"M"+cx+","+(SEG_Y+22)+" V"+BUS_Y,k:"trunk"});drops.forEach(function(d){out.links.push({d:"M"+d.x+","+BUS_Y+" V"+d.y,k:"logical"});});}c.bottom=y;x+=c.width+80;});const routers=nodes.filter(function(n){return n.kind!=="segment"&&n.parent==="internet";});routers.forEach(function(r){const ss=out.segs.filter(function(s){return s.n.parent===r.id;});const rx=ss.length?ss.reduce(function(a,s){return a+s.x;},0)/ss.length:x/2;pos[r.id]={x:rx,y:180};out.nodes.push({n:r,x:rx,y:180});ss.forEach(function(s){out.links.push({d:"M"+rx+",206 V244 H"+s.x+" V"+(SEG_Y-22),k:"trunk"});out.links.push({d:"M"+rx+",206 V244 H"+s.x+" V"+(SEG_Y-22),k:"flow"});});});const total=Math.max(x-40,400);const cloudX=routers.length?routers.reduce(function(a,r){return a+pos[r.id].x;},0)/routers.length:total/2+40;out.cloud={x:cloudX,y:64};routers.forEach(function(r){out.links.push({d:"M"+cloudX+",92 V124 H"+pos[r.id].x+" V156",k:"wan"});});out.segs.filter(function(s){return s.n.parent==="internet";}).forEach(function(s){out.links.push({d:"M"+cloudX+",92 V244 H"+s.x+" V"+(SEG_Y-22),k:"wan"});});const bottom=Math.max.apply(null,columns.map(function(c){return c.bottom;}).concat([ZONE_Y]));out.box={x:0,y:0,w:total+80,h:bottom+20};return out;}
+function topoRender(){const svg=document.getElementById("topo");const empty=document.getElementById("topoEmpty");const L=topoLayout(TOPO);const has=(TOPO.nodes||[]).some(function(n){return n.kind==="segment";});empty.hidden=has;if(!has){svg.innerHTML="";return;}let h="";h+=L.zones.map(function(z){return '<rect class="zone" x="'+z.x+'" y="'+z.y+'" width="'+z.w+'" height="'+z.h+'" rx="4"/><text class="zone-h" x="'+(z.x+12)+'" y="'+(z.y+20)+'">'+esc(z.title)+"</text>";}).join("");h+=L.links.map(function(l){return '<path class="link '+l.k+'" d="'+l.d+'"/>';}).join("");h+='<g class="node" data-kind="cloud" transform="translate('+L.cloud.x+","+L.cloud.y+')"><title>Internet</title><rect class="tile" x="-38" y="-28" width="76" height="56" rx="6"/>'+topoIcon("cloud",0,-2,40)+'<text class="lbl" y="44">Internet</text></g>';h+=L.segs.map(function(s){const n=s.n;const w=230;return '<g class="segnode" transform="translate('+s.x+","+s.y+')"><rect class="seg" x="'+(-w/2)+'" y="-22" width="'+w+'" height="44" rx="4"/>'+'<g class="node" style="pointer-events:none">'+topoIcon("segment",-w/2+24,0,26)+'</g><text class="seg-t" x="'+(-w/2+46)+'" y="-2">'+esc(n.label)+'</text><text class="seg-s" x="'+(-w/2+46)+'" y="13">'+esc((n.online!=null?n.online:n.count)+" en línea de "+n.count)+"</text></g>";}).join("");h+=L.nodes.map(function(p){return topoNode(p.n,p.x,p.y);}).join("");svg.innerHTML=h;TOPO_BOX=L.box;if(!TOPO_VB)topoFit();else topoApply();topoDim();}
+function topoApply(){const svg=document.getElementById("topo");if(TOPO_VB)svg.setAttribute("viewBox",TOPO_VB.join(" "));}
+function topoFit(){const wrap=document.getElementById("topoWrap");if(!TOPO_BOX||!wrap)return;const W=wrap.clientWidth||900,H=wrap.clientHeight||520;const b=TOPO_BOX;const s=Math.max(b.w/W,b.h/H)*1.04;const vw=W*s,vh=H*s;TOPO_VB=[b.x+(b.w-vw)/2,b.y+(b.h-vh)/2,vw,vh];topoApply();}
+function topoZoom(f,cx,cy){if(!TOPO_VB)return;const v=TOPO_VB;const px=cx==null?v[0]+v[2]/2:cx,py=cy==null?v[1]+v[3]/2:cy;const nw=Math.max(120,Math.min(12000,v[2]/f)),k=nw/v[2];TOPO_VB=[px-(px-v[0])*k,py-(py-v[1])*k,nw,v[3]*k];topoApply();}
+function topoDim(){document.querySelectorAll("#topo .node[data-ip]").forEach(function(g){const ip=g.getAttribute("data-ip");if(!ip){return;}const n=(TOPO.nodes||[]).find(function(x){return x.ip===ip;});const on=ROLE_FILTER==="all"||(n&&n.kind===ROLE_FILTER)||(n&&(n.kind==="gateway"||n.kind==="firewall"));g.classList.toggle("dim",!on);});}
+function topoStatus(){if(!(TOPO.nodes||[]).length)return;(DEV_CACHE||[]).forEach(function(h){TOPO_HOSTS[h.ip]=Object.assign({},TOPO_HOSTS[h.ip]||{},h);});document.querySelectorAll("#topo .node[data-ip]").forEach(function(g){const ip=g.getAttribute("data-ip");const n=(TOPO.nodes||[]).find(function(x){return x.ip===ip;});if(!n)return;const st=topoState(n);const dot=g.querySelector(".dot");if(dot)dot.setAttribute("class","dot "+st+(st==="fail"?" pulse":""));g.classList.toggle("off",(TOPO_HOSTS[ip]||{}).online===false);});}
+function topoLegend(){const box=document.getElementById("topoLegend");if(!box)return;const kinds=[["gateway","Router"],["switch","Switch"],["ap","Access point"],["server","Servidor"],["camera","Cámara"],["printer","Impresora"],["pc","PC"],["mobile","Móvil"]];box.innerHTML=kinds.map(function(k){return '<span><svg viewBox="0 0 24 24"><g class="ico k-'+k[0]+'" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">'+TOPO_ICON[k[0]]+"</g></svg>"+k[1]+"</span>";}).join("")+'<span><i style="background:var(--ok)"></i>Operativo</span><span><i style="background:var(--warn)"></i>Advertencia</span><span><i style="background:var(--fail)"></i>Caído</span>';}
+async function loadTopo(){try{const t=await getJ("/api/network/topology");TOPO=t||{nodes:[],links:[]};TOPO_HOSTS={};(TOPO.nodes||[]).forEach(function(n){if(n.ip&&n.h)TOPO_HOSTS[n.ip]=n.h;});const segs=(TOPO.subnets||[]).length;const devs=(TOPO.nodes||[]).filter(function(n){return n.ip;}).length;document.getElementById("topoInfo").textContent=segs?segs+(segs===1?" segmento · ":" segmentos · ")+devs+" equipos"+(TOPO.l2?" · capa 2 por SNMP":" · capa 3"):"Escanea un segmento para dibujarlo";topoRender();}catch(e){document.getElementById("topoInfo").textContent="No se pudo leer la topología";}}
+function topoExport(){const svg=document.getElementById("topo");if(!svg.innerHTML)return;const clone=svg.cloneNode(true);const cs=getComputedStyle(document.documentElement);const vars=["--navy","--ivory","--bone","--steel","--copper","--muted","--muted-ink","--warn","--fail","--card","--card2","--line","--txt","--mut","--ok","--bg","--blue","--violet"].map(function(v){return v+":"+cs.getPropertyValue(v).trim();}).join(";");let css="";for(const sh of document.styleSheets){try{for(const r of sh.cssRules){if(r.selectorText&&(r.selectorText.indexOf("#topo")>=0||r.selectorText.indexOf(".k-")>=0))css+=r.cssText+"\n";}}catch(e){}}clone.setAttribute("style",vars+";background:"+cs.getPropertyValue("--bg").trim());clone.setAttribute("id","topo");const vb=TOPO_BOX;clone.setAttribute("viewBox",[vb.x,vb.y,vb.w,vb.h].join(" "));clone.setAttribute("width",vb.w);clone.setAttribute("height",vb.h);clone.insertAdjacentHTML("afterbegin",'<style>'+css+'</style><rect x="'+vb.x+'" y="'+vb.y+'" width="'+vb.w+'" height="'+vb.h+'" fill="'+cs.getPropertyValue("--bg").trim()+'"/>');const blob=new Blob(['<?xml version="1.0" encoding="UTF-8"?>\n'+clone.outerHTML],{type:"image/svg+xml"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="topologia-"+new Date().toISOString().slice(0,10)+".svg";a.click();setTimeout(function(){URL.revokeObjectURL(a.href);},1500);}
+(function topoGestures(){const wrap=document.getElementById("topoWrap");if(!wrap)return;let drag=null;function svgPt(e){const svg=document.getElementById("topo");const r=svg.getBoundingClientRect();const v=TOPO_VB||[0,0,r.width,r.height];return{x:v[0]+(e.clientX-r.left)/r.width*v[2],y:v[1]+(e.clientY-r.top)/r.height*v[3],r:r};}wrap.addEventListener("wheel",function(e){if(!TOPO_VB)return;e.preventDefault();const p=svgPt(e);topoZoom(e.deltaY<0?1.12:1/1.12,p.x,p.y);},{passive:false});wrap.addEventListener("pointerdown",function(e){if(!TOPO_VB||e.target.closest(".node[data-ip]"))return;drag={x:e.clientX,y:e.clientY,vb:TOPO_VB.slice()};wrap.classList.add("drag");try{wrap.setPointerCapture(e.pointerId);}catch(err){}});wrap.addEventListener("pointermove",function(e){if(!drag)return;const r=wrap.getBoundingClientRect();const k=drag.vb[2]/r.width;TOPO_VB=[drag.vb[0]-(e.clientX-drag.x)*k,drag.vb[1]-(e.clientY-drag.y)*k,drag.vb[2],drag.vb[3]];topoApply();});function end(){drag=null;wrap.classList.remove("drag");}wrap.addEventListener("pointerup",end);wrap.addEventListener("pointercancel",end);wrap.addEventListener("dblclick",function(){topoFit();});document.getElementById("topo").addEventListener("click",function(e){const g=e.target.closest(".node[data-ip]");if(g&&g.getAttribute("data-ip"))openDev(g.getAttribute("data-ip"));});document.getElementById("topo").addEventListener("keydown",function(e){if(e.key!=="Enter")return;const g=e.target.closest(".node[data-ip]");if(g&&g.getAttribute("data-ip"))openDev(g.getAttribute("data-ip"));});window.addEventListener("resize",function(){if(TOPO_BOX)topoFit();});})();
+function physHtml(p){const st=p.state==="fail"?"bad":p.state==="warn"?"warn":"ok";let out='<div class="lrow"><span class="badge '+st+'">'+esc(p.status||(p.state==="fail"?"Caído":p.state==="warn"?"Advertencia":"Operativo"))+"</span><span>"+esc(p.summary||"")+"</span></div>";if(p.uptime)out+=drow("Encendido",p.uptime);if(p.kind==="switch")out+=drow("Puertos",p.ports_up+" arriba · "+p.ports_down+" abajo · "+p.ports_total+" total");(p.supplies||[]).forEach(function(s){const pc=s.pct==null?null:s.pct;const c=pc==null?"var(--mut)":pc<=10?"var(--fail)":pc<=25?"var(--warn)":"var(--ok)";out+='<div style="margin-top:8px"><div class="lrow"><span class="small">'+esc(s.name)+"</span><b>"+(pc==null?"—":pc+" %")+'</b></div><div class="supbar"><i style="width:'+(pc==null?0:pc)+"%;background:"+c+'"></i></div></div>';});(p.alerts||[]).forEach(function(a){out+='<div class="issues">'+esc(a)+"</div>";});return out+'<p class="src">'+esc(p.source||"SNMP")+" · lectura del escaneo</p>";}
+function openDev(ip){const h=(DEV_CACHE||[]).find(function(x){return x.ip===ip;})||TOPO_HOSTS[ip]||{ip:ip};const role=hostRole(h);const hint=PHYS[role]||PHYS.unknown;const p=h.physical,sw=h.software,adv=Array.isArray(h.advisories)?h.advisories:[];const ev=Array.isArray(h.evidence)?h.evidence:[];const evBody=ev.length?'<ul class="evid">'+ev.map(function(x){return "<li>"+esc(x)+"</li>";}).join("")+"</ul>":"";const physBody=p&&(p.summary||p.note)?physHtml(p):'<p class="small">'+esc(hint[0])+'</p><p class="src">'+esc(hint[1])+" · sin lectura"+(h.snmp===false||h.snmp==null?" · SNMP no respondió":"")+"</p>";const swBody=sw&&(sw.firmware||sw.model)?drow("Modelo",sw.model)+drow("Firmware",sw.firmware)+(sw.sys_name?drow("Nombre SNMP",sw.sys_name):"")+(sw.location?drow("Ubicación",sw.location):""):h.web&&(h.web.title||h.web.server)?drow("Portada",h.web.title)+drow("Servidor web",h.web.server)+'<p class="src">HTTP :'+esc(h.web.port)+" · modelo exacto requiere SNMP</p>":'<p class="small">Modelo y firmware salen del equipo. El cruce con avisos usa esa versión.</p><p class="src">SNMP sysDescr · sin lectura</p>';const advBody=adv.length?adv.map(function(a){return '<div class="lrow"><span class="badge '+(a.severity==="high"?"bad":"warn")+'">'+esc(a.severity||"aviso")+"</span><span>"+esc(a.title||"")+"</span></div>";}).join(""):'<p class="small">Sin cruce con avisos. Entra cuando haya firmware.</p><p class="src">NVD · OSV</p>';openDrawer(ip,'<div class="dhead"><span class="stamp">INTERNO</span><span class="src">'+esc(String(role).toUpperCase())+'</span></div><div class="dossier"><section class="dsec"><span class="kicker">Identidad</span>'+drow("Host",h.hostname)+drow("Marca",h.vendor)+drow("MAC",h.mac)+drow("Tipo",typeLabel(h))+drow("Puertos",(h.open_ports||[]).join(", "))+drow("Latencia",h.latency_ms!=null?h.latency_ms+" ms":"—")+evBody+'</section><section class="dsec"><span class="kicker">Estado físico</span>'+physBody+'</section><section class="dsec"><span class="kicker">Software</span>'+swBody+'</section><section class="dsec"><span class="kicker">Avisos</span>'+advBody+'</section></div><div class="toolbar" style="margin-top:12px"><button class="btn" type="button" onclick="cyberNmapTo(\''+esc(ip)+'\')">Nmap</button><button class="ghost" type="button" onclick="scanNet(true);closeDrawer()">Re-ping</button></div>');}
+function cyberNmapTo(ip){document.getElementById("cyberTarget").value=ip;gotoTab("cyber");cyberNmap();}
+async function openPage(name){let h="";try{const r=await getJ("/api/history?name="+encodeURIComponent(name)+"&hours=24");const last=r.slice(-30);const okN=last.filter(function(x){return x.ok;}).length;h="Chequeos 24h: "+last.length+" · OK "+okN+"<br>Último: "+esc((last[last.length-1]||{}).detail||"—");}catch(e){h="Sin historial";}openDrawer(name,h+'<br><br><button class="btn" type="button" onclick="loadHeaders()">Re-auditar headers</button>');}
+function openPalette(){document.getElementById("palWrap").classList.add("on");const i=document.getElementById("palInput");i.value="";palFilter("");setTimeout(function(){i.focus();},50);}
+function closePalette(){document.getElementById("palWrap").classList.remove("on");}
+function gotoTab(t){const b=document.querySelector('#tabs button[data-t="'+t+'"]');if(b)b.click();}
+function palItems(){const items=[];(DEV_CACHE||[]).forEach(function(h){items.push({t:"Equipo  "+h.ip+" "+(h.hostname||""),fn:function(){gotoTab("red");openDev(h.ip);}});});document.querySelectorAll("#httpList [data-name]").forEach(function(h){const n=h.getAttribute("data-name");items.push({t:"Página  "+n,fn:function(){gotoTab("paginas");openPage(n);}});});[["Resumen","resumen"],["Red","red"],["Páginas","paginas"],["Automatizaciones","autos"],["Cyber","cyber"],["SLA","sla"],["Fallos","fallos"]].forEach(function(x){items.push({t:"Ir a  "+x[0],fn:function(){gotoTab(x[1]);}});});items.push({t:"Modo TV",fn:toggleTV},{t:"Cambiar tema",fn:toggleTheme},{t:"Escanear red",fn:function(){scanNet(false);}},{t:"Reporte PDF",fn:downloadPDF});return items;}
+function palFilter(q){q=(q||"").toLowerCase();const list=palItems().filter(function(x){return x.t.toLowerCase().indexOf(q)>=0;}).slice(0,12);const box=document.getElementById("palList");box.innerHTML=list.map(function(x,i){return '<div data-i="'+i+'"'+(i===0?' class="sel"':"")+">"+esc(x.t)+"</div>";}).join("")||"<div>Sin resultados</div>";palIdx=0;[...box.children].forEach(function(el,i){if(!list[i])return;el.onclick=function(){closePalette();list[i].fn();};});}
+document.getElementById("palInput").addEventListener("input",function(e){palFilter(e.target.value);});
+document.getElementById("palInput").addEventListener("keydown",function(e){const rows=[...document.querySelectorAll("#palList [data-i]")];if(!rows.length)return;if(e.key==="ArrowDown"){e.preventDefault();palIdx=Math.min(rows.length-1,palIdx+1);}else if(e.key==="ArrowUp"){e.preventDefault();palIdx=Math.max(0,palIdx-1);}else if(e.key==="Enter"){e.preventDefault();rows[Math.min(palIdx,rows.length-1)].click();return;}else return;rows.forEach(function(r,i){r.classList.toggle("sel",i===palIdx);});});
+document.getElementById("palWrap").addEventListener("click",function(e){if(e.target.id==="palWrap")closePalette();});
+document.getElementById("netBody").addEventListener("click",function(e){const a=e.target.closest("[data-ip]");if(!a)return;e.preventDefault();openDev(a.getAttribute("data-ip"));});
+document.getElementById("roleBar").addEventListener("click",function(ev){const b=ev.target.closest("button");if(!b)return;ROLE_FILTER=b.dataset.role||"all";paintRoles();filterDevs();topoDim();});
+document.getElementById("tabs").addEventListener("click",function(ev){const b=ev.target.closest("button[data-t]");if(b&&b.dataset.t==="red")setTimeout(function(){if(TOPO_BOX)topoFit();},80);});
+topoLegend();loadTopo();
+document.getElementById("httpList").addEventListener("click",function(e){const row=e.target.closest("[data-name]");if(row)openPage(row.getAttribute("data-name"));});
+document.addEventListener("keydown",function(e){if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==="k"){e.preventDefault();openPalette();}if(e.key==="Escape"){closePalette();closeDrawer();}const typing=e.target&&(e.target.tagName==="INPUT"||e.target.tagName==="TEXTAREA"||e.target.tagName==="SELECT");if(!typing&&(e.key==="]"||e.key==="[")){e.preventDefault();stepTab(e.key==="]"?1:-1);}});
+document.getElementById("monChips").addEventListener("click",function(e){const b=e.target.closest("[data-name]");if(!b)return;gotoTab("paginas");openPage(b.getAttribute("data-name"));});
+(function(){let t0=null;const main=document.querySelector("main");main.addEventListener("touchstart",function(e){const t=e.changedTouches[0];t0={x:t.clientX,y:t.clientY};},{passive:true});main.addEventListener("touchend",function(e){if(!t0)return;const t=e.changedTouches[0];const dx=t.clientX-t0.x,dy=t.clientY-t0.y;t0=null;if(Math.abs(dx)<72||Math.abs(dx)<Math.abs(dy)*1.2)return;stepTab(dx<0?1:-1);},{passive:true});})();
+function toggleTV(){const on=document.body.classList.toggle("tv");if(on){const tabs=["resumen","red","paginas","autos","cyber","sla","fallos"];let i=0;tvTimer=setInterval(function(){i=(i+1)%tabs.length;gotoTab(tabs[i]);},20000);}else if(tvTimer){clearInterval(tvTimer);tvTimer=null;}}
+function beepIfNew(list){try{const open=(list||[]).filter(function(x){return x.status==="open";});const k="lastCrit";const prev=+(sessionStorage.getItem(k)||0);if(open.length>prev&&document.body.classList.contains("tv")){const ctx=new (window.AudioContext||window.webkitAudioContext)();const o=ctx.createOscillator(),g=ctx.createGain();o.connect(g);g.connect(ctx.destination);o.frequency.value=880;g.gain.value=.08;o.start();o.stop(ctx.currentTime+.25);}sessionStorage.setItem(k,String(open.length));}catch(e){}}
+function dashConfig(){const cur=JSON.parse(localStorage.getItem("dash")||'["internet","app","gw","dev"]');const names={internet:"Internet",app:"InklusivApp",gw:"Gateway",dev:"Equipos"};openDrawer("Mi resumen",Object.keys(names).map(function(k){return '<label style="display:flex;gap:8px;align-items:center;margin:8px 0"><input type="checkbox" data-k="'+k+'" '+(cur.indexOf(k)>=0?"checked":"")+"> "+names[k]+"</label>";}).join("")+'<br><button class="btn" type="button" onclick="dashSave()">Guardar</button>');}
+function dashSave(){const sel=[...document.querySelectorAll("#drawerBody input[data-k]:checked")].map(function(x){return x.getAttribute("data-k");});localStorage.setItem("dash",JSON.stringify(sel));applyDash();closeDrawer();}
+function applyDash(){let cur=null;try{cur=JSON.parse(localStorage.getItem("dash")||"null");}catch(e){}if(!cur)return;document.querySelectorAll("#kpiGrid .card").forEach(function(c){c.style.display=cur.indexOf(c.getAttribute("data-kpi"))>=0?"":"none";});}
+async function loadSLA(){const d=document.getElementById("slaDays").value;document.getElementById("slaInfo").textContent="Calculando…";try{const r=await getJ("/api/sla?days="+d);if(!Array.isArray(r))return;const avg=r.length?r.reduce(function(a,s){return a+(Number(s.uptime)||0);},0)/r.length:0;const risk=r.filter(function(s){return s.uptime<99;}).length;const sa=document.getElementById("slaAvg"),sc=document.getElementById("slaCount"),sr=document.getElementById("slaRisk");if(sa)sa.innerHTML=avg.toFixed(2)+'<span class="unit">%</span>';if(sc)sc.textContent=r.length;if(sr){sr.textContent=risk;sr.dataset.lvl=risk?"bad":"ok";}document.getElementById("slaBody").innerHTML=r.map(function(s){const col=s.uptime>=99?"var(--ok)":s.uptime>=95?"var(--warn)":"var(--fail)";const w=Math.max(0,Math.min(100,Number(s.uptime)||0));return "<tr><td><b>"+esc(s.name)+'</b></td><td class="small">'+esc(s.category)+'</td><td><div class="sla-up"><b style="color:'+col+'">'+esc(s.uptime)+'%</b><div class="hbar"><i style="width:'+w+"%;background:"+col+'"></i></div></div></td><td class="mono">'+esc(s.p95_ms??"—")+'</td><td class="mono">'+esc(s.avg_ms??"—")+"</td><td>"+esc(s.checks)+"</td></tr>";}).join("")||'<tr><td colspan="6" class="empty">Sin muestras en esta ventana.</td></tr>';document.getElementById("slaInfo").textContent=r.length+" servicios · "+d+" días";}catch(e){document.getElementById("slaInfo").textContent="No se pudo calcular";}}
+async function loadIncidents(){try{renderIncidents(await getJ("/api/incidents?limit=50"));}catch(e){}}
+function renderIncidents(list){const tb=document.getElementById("incBody");if(!tb)return;list=list||[];const open=list.filter(function(i){return i.status==="open";}).length;const badge=document.getElementById("badgeSla");if(badge){badge.hidden=open===0;badge.textContent=open;}tb.innerHTML=list.map(function(i){return "<tr><td class=\"mono\">"+esc(i.id)+"</td><td><b>"+esc(i.title)+'</b><div class="small">'+esc((i.detail||"").slice(0,120))+'</div></td><td><span class="badge '+(i.level==="CRITICO"?"bad":"warn")+'">'+esc(i.level)+'</span></td><td><span class="badge '+(i.status==="open"?"bad":i.status==="ack"?"warn":"ok")+'">'+esc(i.status)+'</span></td><td class="small">'+esc(new Date(i.ts_start*1000).toLocaleString())+'</td><td class="small">'+esc(i.ts_end?new Date(i.ts_end*1000).toLocaleString():"—")+"</td><td>"+(i.status==="open"?'<button class="ghost" type="button" onclick="ackInc('+Number(i.id)+')">Ack</button>':"")+"</td></tr>";}).join("")||'<tr><td colspan="7" class="empty">Sin incidentes.</td></tr>';}
+async function ackInc(id){await fetch("/api/incidents/ack?id="+id+"&by=soporte",{method:"POST"});loadIncidents();}
+function downloadPDF(){const d=(document.getElementById("slaDays")||{value:7}).value;window.open("/api/report.pdf?days="+d,"_blank");}
+async function loadSNMP(){const h=document.getElementById("snmpHost").value,c=document.getElementById("snmpCom").value;document.getElementById("snmpInfo").textContent="Leyendo "+h+" …";try{const r=await getJ("/api/snmp/interfaces?host="+encodeURIComponent(h)+"&community="+encodeURIComponent(c));if(!r.disponible){document.getElementById("snmpBody").innerHTML='<tr><td colspan="4" class="empty">'+esc(r.msg)+"</td></tr>";document.getElementById("snmpInfo").textContent="Sin SNMP";return;}const ifs=r.interfaces||[];const mx=Math.max(1,...ifs.map(function(x){return Math.max(x.down_mbps||0,x.up_mbps||0);}));document.getElementById("snmpBody").innerHTML=ifs.map(function(x){const wd=Math.round((x.down_mbps||0)/mx*100),wu=Math.round((x.up_mbps||0)/mx*100);return "<tr><td class=\"mono\">"+esc(x.if)+"</td><td>"+esc(x.nombre)+'</td><td><b>'+esc(x.down_mbps)+'</b><div class="hbar"><i style="width:'+wd+'%;background:#9eb6ce"></i></div></td><td><b>'+esc(x.up_mbps)+'</b><div class="hbar"><i style="width:'+wu+'%;background:#c47b4a"></i></div></td></tr>';}).join("")||'<tr><td colspan="4" class="empty">Sin interfaces.</td></tr>';document.getElementById("snmpInfo").textContent=ifs.length+" interfaces · "+(r.nota||"");}catch(e){document.getElementById("snmpInfo").textContent="No se pudo leer el router";}}
+try{initPlots();}catch(e){console.error(e);try{document.getElementById("errbox").style.display="block";document.getElementById("errbox").textContent="Error gráficas: "+e.message;}catch(_){}}
+try{sizePlots();}catch(e){}
+try{applyDash();}catch(e){}
+try{loadInitial();}catch(e){console.error(e);}
+try{paintRoles();loadIncidents();loadSLA();loadDNS();
+document.getElementById("range").addEventListener("click",function(ev){const b=ev.target.closest("button");if(b)setRange(b).catch(function(e){console.warn(e);});});}catch(e){}
+try{connectWS();}catch(e){console.error(e);}
+setTimeout(function(){try{sizePlots();}catch(e){}},300);
+</script>
+</body>
+</html>

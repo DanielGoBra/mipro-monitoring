@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0e1c33">
+<title>Entrar · MiPro</title>
+<link id="favicon" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='3' fill='%230e1c33'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Azeret+Mono:wght@500;600&family=Newsreader:opsz,wght@6..72,500;6..72,600&family=Public+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/tokens.css">
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--navy);color:var(--ivory);font-family:var(--font-sans)}
+body{min-height:100vh}
+.shell{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(320px,440px);min-height:100vh}
+.stage{position:relative;min-height:100vh;background:var(--navy);overflow:hidden;user-select:none}
+.stage canvas{position:absolute;inset:0;width:100%;height:100%;display:block;cursor:grab;touch-action:none}
+.stage.is-drag canvas{cursor:grabbing}
+.stage-copy{position:absolute;left:28px;top:28px;z-index:1;max-width:420px;pointer-events:none}
+.orbit-hint{position:absolute;left:28px;bottom:22px;z-index:1;margin:0;pointer-events:none;color:var(--muted);font-family:var(--font-mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase}
+.stage-copy strong{display:block;font-family:var(--font-serif);font-size:34px;font-weight:550;letter-spacing:-.03em;line-height:1.05}
+.stage-copy span{display:block;margin-top:8px;color:var(--muted);font-size:14px}
+.panel{background:var(--ivory);color:var(--navy);display:flex;flex-direction:column;justify-content:center;padding:48px 40px;border-left:1px solid var(--rail-line)}
+.brand{display:flex;align-items:center;gap:12px;margin-bottom:36px}
+.brand canvas{width:40px;height:40px;display:block;border-radius:3px}
+.brand b{font-family:var(--font-serif);font-size:22px;font-weight:550;letter-spacing:-.03em;display:block;line-height:1}
+.brand small{display:block;margin-top:4px;color:var(--muted-ink);font-size:13px}
+h1{font-family:var(--font-serif);font-weight:550;font-size:40px;letter-spacing:-.03em;margin:0 0 8px;line-height:1}
+.lead{margin:0 0 28px;color:var(--muted-ink);font-size:15px}
+form{display:flex;flex-direction:column;gap:14px}
+label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:600}
+label span{font-family:var(--font-mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted-ink);font-weight:500}
+input{background:var(--paper);border:1px solid var(--paper-line);border-radius:3px;padding:12px 12px;color:var(--navy);font:inherit}
+input:focus{outline:2px solid var(--navy);outline-offset:1px}
+button{margin-top:6px;background:var(--navy);color:var(--ivory);border:1px solid var(--navy);border-radius:3px;padding:12px 14px;font:inherit;font-weight:600;cursor:pointer}
+button:hover{background:var(--card)}
+.err{min-height:1.2em;margin:0;color:var(--brick);font-size:13px}
+.foot{margin-top:28px;display:flex;justify-content:space-between;gap:12px;color:var(--muted-ink);font-size:12px}
+.foot a{color:var(--navy)}
+@media(max-width:860px){
+  .shell{grid-template-columns:1fr}
+  .stage{min-height:46vh}
+  .stage-copy,.orbit-hint{display:none}
+  .panel{border-left:0;border-top:1px solid var(--rail-line);padding:32px 22px 40px}
+}
+@media(prefers-reduced-motion:reduce){canvas{display:block}}
+</style>
+</head>
+<body>
+<div class="shell">
+  <section class="stage">
+    <canvas id="net" aria-label="Galaxia. Arrastra para orbitarla."></canvas>
+    <div class="stage-copy">
+      <strong>La red, a la vista.</strong>
+      <span>Monitoreo, infraestructura y postura de seguridad en una sola consola.</span>
+    </div>
+    <p class="orbit-hint">Arrastra para orbitar</p>
+  </section>
+  <main class="panel">
+    <div class="brand">
+      <canvas id="mark" width="64" height="64" aria-label="MiPro"></canvas>
+      <div><b>MiPro</b><small>Inteligencia</small></div>
+    </div>
+    <h1>Entrar</h1>
+    <p class="lead">Consola interna de la operación.</p>
+    <form id="login" autocomplete="on">
+      <label><span>Usuario</span><input id="user" name="username" autocomplete="username" required></label>
+      <label><span>Contraseña</span><input id="pass" name="password" type="password" autocomplete="current-password" required></label>
+      <p class="err" id="err" role="alert"></p>
+      <button type="submit">Entrar a la consola</button>
+    </form>
+    <div class="foot">
+      <a href="/estado">Estado público</a>
+      <span>Sesión de esta consola</span>
+    </div>
+  </main>
+</div>
+<script>
+"use strict";
+const canvas = document.getElementById("net");
+const ctx = canvas.getContext("2d");
+const rootStyle = getComputedStyle(document.documentElement);
+function token(name){return rootStyle.getPropertyValue(name).trim();}
+function rgba(hex, a){
+  const n = parseInt(hex.replace("#", ""), 16);
+  return "rgba(" + ((n >> 16) & 255) + "," + ((n >> 8) & 255) + "," + (n & 255) + "," + a + ")";
+}
+const COL = {
+  navy: token("--navy"),
+  ivory: token("--ivory"),
+  bone: token("--bone"),
+  steel: token("--steel"),
+  copper: token("--copper"),
+  card: token("--card")
+};
+const PAL = [COL.ivory, COL.bone, COL.steel, COL.copper];
+const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+const PITCH = 0.5;
+let inc = 1.02;
+let pa = -0.55;
+let yaw = 0.4;
+let velYaw = 0;
+let velInc = 0;
+let zoom = 1;
+let dragging = false;
+let lastX = 0, lastY = 0, moved = 0;
+let lookX = 0, lookY = 0;
+let ptrX = 0, ptrY = 0;
+function rnd(seed){
+  let a = seed >>> 0;
+  return function(){
+    a = (a + 0x6D2B79F5) >>> 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const rand = rnd(310);
+function star(r, th, size, tone, kind){
+  return {r:r, th:th, size:size, tone:tone, kind:kind, ph:rand() * Math.PI * 2};
+}
+const stars = [];
+for (let i = 0; i < 900; i++){
+  const u = rand(), v = rand();
+  const r = Math.sqrt(-2 * Math.log(Math.max(u, 1e-4))) * 0.16;
+  stars.push(star(Math.min(r, 0.5), v * Math.PI * 2, 0.7 + rand() * 1.8, rand() < 0.7 ? 1 : 0, "core"));
+}
+for (let i = 0; i < 2800; i++){
+  const r = Math.min(1, -0.26 * Math.log(1 - rand() * 0.97));
+  stars.push(star(r, rand() * Math.PI * 2, 0.4 + rand() * 0.95, r > 0.58 ? 2 : (rand() < 0.2 ? 1 : 0), "disk"));
+}
+for (let i = 0; i < 2600; i++){
+  const r = 0.08 + Math.pow(rand(), 0.45) * 0.95;
+  stars.push(star(r, rand() * Math.PI * 2, 0.35 + rand() * 0.7, r > 0.62 ? 2 : 1, "faint"));
+}
+function gauss(){
+  const u = Math.max(rand(), 1e-6), v = rand();
+  return Math.sqrt(-2 * Math.log(u)) * Math.cos(Math.PI * 2 * v);
+}
+function smooth(a, b, x){
+  const t = Math.max(0, Math.min(1, (x - a) / (b - a)));
+  return t * t * (3 - 2 * t);
+}
+const ARMS = [
+  {off:0, r0:0.1, r1:1.0, pitch:0.36, weight:1, wob:0.0},
+  {off:Math.PI, r0:0.1, r1:0.96, pitch:0.36, weight:1, wob:1.7},
+  {off:Math.PI * 0.5 + 0.35, r0:0.26, r1:0.82, pitch:0.42, weight:0.45, wob:3.1},
+  {off:Math.PI * 1.5 + 0.2, r0:0.3, r1:0.78, pitch:0.42, weight:0.38, wob:4.4}
+];
+function armTheta(a, r){
+  return a.off + Math.log(r / 0.1) / a.pitch + 0.11 * Math.sin(r * 9 + a.wob) + 0.05 * Math.sin(r * 23 + a.wob * 2);
+}
+function armWidth(r){ return 0.013 + r * 0.042; }
+function armTone(r){
+  if (r < 0.3) return rand() < 0.55 ? 1 : 0;
+  if (r < 0.55) return rand() < 0.12 ? 3 : (rand() < 0.5 ? 0 : 2);
+  return rand() < 0.1 ? 3 : (rand() < 0.75 ? 2 : 0);
+}
+function onArm(a, spreadMul){
+  const span = a.r1 - a.r0;
+  const r = a.r0 + Math.pow(rand(), 0.85) * span;
+  const tip = smooth(a.r1 - span * 0.28, a.r1, r);
+  const root = 1 - smooth(a.r0, a.r0 + 0.08, r);
+  const w = armWidth(r) * spreadMul * (1 + tip * 1.6);
+  const rr = r + gauss() * w;
+  const th = armTheta(a, r) + gauss() * w * 0.6 / Math.max(r, 0.1);
+  return {r:Math.max(0.02, rr), th:th, base:r, fade:(1 - tip * 0.85) * (1 - root * 0.5)};
+}
+const haze = [];
+const dust = [];
+const knots = [];
+const vol = [];
+for (let i = 0; i < 1700; i++){
+  const x = gauss() * 0.085, y = gauss() * 0.085, z = gauss() * 0.065;
+  if (Math.hypot(x, y, z) > 0.3) continue;
+  vol.push({x:x, y:y, z:z, size:0.6 + rand() * 1.3, tone:rand() < 0.65 ? 1 : 0, a:0.55, ph:rand() * 6.28});
+}
+for (let i = 0; i < 1500; i++){
+  const r = Math.min(1.05, -0.32 * Math.log(1 - rand() * 0.96));
+  const th = rand() * Math.PI * 2;
+  vol.push({x:Math.cos(th) * r, y:Math.sin(th) * r, z:gauss() * (0.02 + r * 0.035), size:0.5 + rand() * 0.9, tone:r > 0.5 ? 2 : (rand() < 0.5 ? 1 : 0), a:0.38, ph:rand() * 6.28});
+}
+ARMS.forEach(function(a){
+  const n = Math.round(3600 * a.weight);
+  for (let i = 0; i < n; i++){
+    const p = onArm(a, 1);
+    if (rand() > p.fade + 0.08) continue;
+    const s = star(p.r, p.th, rand() < 0.02 ? 2.3 : 0.55 + rand() * 1.05, armTone(p.base), "arm");
+    s.fade = p.fade;
+    stars.push(s);
+    if (rand() < 0.2){
+      vol.push({x:Math.cos(p.th) * p.r, y:Math.sin(p.th) * p.r, z:gauss() * (0.012 + p.r * 0.022), size:0.55 + rand() * 0.9, tone:armTone(p.base), a:0.5 * p.fade, ph:rand() * 6.28});
+    }
+  }
+  for (let i = 0; i < Math.round(900 * a.weight); i++){
+    const p = onArm(a, 1.5);
+    haze.push({r:p.r, th:p.th, size:8 + rand() * 14, tone:p.base < 0.32 ? 1 : (rand() < 0.15 ? 3 : 2), a:(0.05 + rand() * 0.06) * p.fade});
+  }
+  for (let i = 0; i < Math.round(1500 * a.weight); i++){
+    const span = a.r1 - a.r0;
+    const r = a.r0 + 0.04 + rand() * span * 0.82;
+    const w = armWidth(r);
+    const rr = r - w * (0.9 + rand() * 0.5) + gauss() * w * 0.25;
+    const th = armTheta(a, r) + gauss() * 0.02;
+    const fade = 1 - smooth(a.r1 - span * 0.35, a.r1, r);
+    dust.push({r:rr, th:th, size:1.6 + rand() * 3.4, a:(0.22 + rand() * 0.3) * fade});
+  }
+  const kn = Math.round(16 * a.weight + 3);
+  for (let k = 0; k < kn; k++){
+    const c = onArm(a, 0.5);
+    const tone = rand() < 0.3 ? 3 : (c.base < 0.3 ? 1 : 2);
+    const cnt = 10 + Math.floor(rand() * 18);
+    for (let j = 0; j < cnt; j++){
+      const kr = c.r + gauss() * 0.011;
+      const kth = c.th + gauss() * 0.011 / Math.max(c.r, 0.1);
+      const s = star(kr, kth, 0.45 + rand() * 0.75, rand() < 0.6 ? tone : 0, "arm");
+      s.fade = c.fade;
+      stars.push(s);
+    }
+    knots.push({r:c.r, th:c.th, tone:tone, size:9 + rand() * 10, a:0.09 * c.fade});
+  }
+  const spurs = Math.round(9 * a.weight + 2);
+  for (let k = 0; k < spurs; k++){
+    const span = a.r1 - a.r0;
+    const r = a.r0 + 0.1 + rand() * span * 0.75;
+    const th = armTheta(a, r);
+    const len = 0.05 + rand() * 0.1;
+    const dir = rand() < 0.5 ? 1 : -1;
+    for (let j = 0; j < 70; j++){
+      const t = rand();
+      const sr = r + t * len;
+      const sth = th + dir * t * len * 1.6 + gauss() * 0.012;
+      const s = star(sr + gauss() * 0.006, sth, 0.5 + rand() * 0.9, armTone(sr), "arm");
+      s.fade = (1 - t) * 0.8;
+      stars.push(s);
+    }
+  }
+});
+function softDot(hex){
+  const s = 24;
+  const c = document.createElement("canvas");
+  c.width = c.height = s;
+  const g = c.getContext("2d");
+  const grd = g.createRadialGradient(s / 2, s / 2, 0, s / 2, s / 2, s / 2);
+  grd.addColorStop(0, rgba(hex, 0.95));
+  grd.addColorStop(0.22, rgba(hex, 0.45));
+  grd.addColorStop(0.55, rgba(hex, 0.08));
+  grd.addColorStop(1, rgba(hex, 0));
+  g.fillStyle = grd;
+  g.fillRect(0, 0, s, s);
+  return c;
+}
+const dot = PAL.map(softDot);
+const dustDot = softDot(COL.navy);
+const companion = [];
+for (let i = 0; i < 280; i++){
+  const u = rand(), v = rand();
+  const r = Math.sqrt(-2 * Math.log(Math.max(u, 1e-4))) * 0.06;
+  companion.push({r:Math.min(r, 0.16), th:v * Math.PI * 2, size:0.55 + rand() * 1.1});
+}
+const field = [];
+for (let i = 0; i < 520; i++){
+  field.push({x:rand(), y:rand(), s:rand() < 0.06 ? 1.8 : 0.35 + rand() * 0.7, ph:rand() * 6.28, tone:rand() < 0.14 ? 3 : (rand() < 0.3 ? 2 : 0), soft:rand() < 0.22});
+}
+const drift = [];
+for (let i = 0; i < 70; i++){
+  drift.push({x:rand(), y:rand(), s:1.4 + rand() * 2.2, vx:(rand() - 0.5) * 0.000018, vy:(rand() - 0.5) * 0.000012, a:0.12 + rand() * 0.28, tone:rand() < 0.35 ? 3 : 2});
+}
+const meteors = [];
+let meteorIn = 900;
+function spawnMeteor(w, h){
+  const ang = 0.35 + rand() * 0.85;
+  const speed = 0.42 + rand() * 0.38;
+  meteors.push({
+    x: rand() * w * 0.72,
+    y: rand() < 0.7 ? -30 : rand() * h * 0.35,
+    vx: Math.cos(ang) * speed,
+    vy: Math.sin(ang) * speed,
+    life: 0,
+    max: 900 + rand() * 700,
+    len: 70 + rand() * 120,
+    tone: rand() < 0.22 ? 3 : 0
+  });
+}
+function stepSky(dt, w, h){
+  drift.forEach(function(d){
+    if (reduce) return;
+    d.x += d.vx * dt;
+    d.y += d.vy * dt;
+    if (d.x < 0) d.x += 1;
+    if (d.x > 1) d.x -= 1;
+    if (d.y < 0) d.y += 1;
+    if (d.y > 1) d.y -= 1;
+  });
+  if (reduce) return;
+  meteorIn -= dt;
+  if (meteorIn <= 0 && meteors.length < 2){
+    spawnMeteor(w, h);
+    meteorIn = 3200 + rand() * 4800;
+  }
+  for (let i = meteors.length - 1; i >= 0; i--){
+    const m = meteors[i];
+    m.life += dt;
+    m.x += m.vx * dt;
+    m.y += m.vy * dt;
+    if (m.life > m.max || m.x > w + 80 || m.y > h + 80) meteors.splice(i, 1);
+  }
+}
+function drawMeteors(g){
+  meteors.forEach(function(m){
+    const t = m.life / m.max;
+    const fade = Math.max(0, t < 0.12 ? t / 0.12 : 1 - (t - 0.12) / 0.88);
+    const tail = m.len * Math.min(1, m.life / 160);
+    g.save();
+    g.translate(m.x, m.y);
+    g.rotate(Math.atan2(m.vy, m.vx));
+    const grd = g.createLinearGradient(-tail, 0, 0, 0);
+    grd.addColorStop(0, rgba(PAL[m.tone], 0));
+    grd.addColorStop(0.72, rgba(PAL[m.tone], 0.45 * fade));
+    grd.addColorStop(1, rgba(COL.ivory, fade));
+    g.strokeStyle = grd;
+    g.lineWidth = 1.6;
+    g.lineCap = "round";
+    g.beginPath();
+    g.moveTo(-tail, 0);
+    g.lineTo(0, 0);
+    g.stroke();
+    g.globalAlpha = fade;
+    g.fillStyle = COL.ivory;
+    g.beginPath();
+    g.arc(0, 0, 1.7, 0, Math.PI * 2);
+    g.fill();
+    g.restore();
+  });
+}
+
+function resize(){
+  const r = canvas.parentNode.getBoundingClientRect();
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.max(1, Math.floor(r.width * dpr));
+  canvas.height = Math.max(1, Math.floor(r.height * dpr));
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+function place(){
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const narrow = w < 860;
+  return {
+    cx: w * 0.48 + lookX * 18,
+    cy: h * (narrow ? 0.56 : 0.57) + lookY * 12,
+    R: Math.min(w, h) * (narrow ? 0.6 : 0.55) * zoom,
+    spin: yaw,
+    inc: inc,
+    pa: pa
+  };
+}
+function project(r, th, view){
+  const a = th + view.spin;
+  const x = Math.cos(a) * r;
+  const y = Math.sin(a) * r * Math.cos(view.inc);
+  const cs = Math.cos(view.pa), sn = Math.sin(view.pa);
+  return {x:view.cx + (x * cs - y * sn) * view.R, y:view.cy + (x * sn + y * cs) * view.R};
+}
+const mark = document.getElementById("mark");
+const mctx = mark.getContext("2d");
+mctx.imageSmoothingQuality = "high";
+const icon = document.getElementById("favicon");
+let last = 0;
+let snapped = false;
+const SPRITE = 1800;
+const UNIT = SPRITE / 2.3;
+const sprite = document.createElement("canvas");
+sprite.width = sprite.height = SPRITE;
+function isLive(s){
+  return (s.kind === "arm" && s.size > 1.4) || (s.kind === "core" && s.size > 2.1);
+}
+function project3(x, y, z, view){
+  const cs = Math.cos(view.spin), sn = Math.sin(view.spin);
+  const X = x * cs - y * sn;
+  const Y = (x * sn + y * cs) * Math.cos(view.inc) - z * Math.sin(view.inc);
+  const cp = Math.cos(view.pa), sp = Math.sin(view.pa);
+  return {x:view.cx + (X * cp - Y * sp) * view.R, y:view.cy + (X * sp + Y * cp) * view.R};
+}
+function spheroid(g, view, radius, q, stops){
+  g.save();
+  g.translate(view.cx, view.cy);
+  g.rotate(view.pa);
+  g.scale(1, q);
+  const grd = g.createRadialGradient(0, 0, 0, 0, 0, radius);
+  stops.forEach(function(s){ grd.addColorStop(s[0], s[1]); });
+  g.fillStyle = grd;
+  g.beginPath();
+  g.arc(0, 0, radius, 0, Math.PI * 2);
+  g.fill();
+  g.restore();
+}
+const live = stars.filter(isLive);
+(function bakeSprite(){
+  const g = sprite.getContext("2d");
+  const c = SPRITE / 2;
+  const k = UNIT / 450;
+  function at(r, th, img, w, a){
+    g.globalAlpha = a;
+    g.drawImage(img, c + Math.cos(th) * r * UNIT - w / 2, c + Math.sin(th) * r * UNIT - w / 2, w, w);
+  }
+  stars.forEach(function(s){
+    if (s.kind !== "faint" && s.kind !== "disk") return;
+    at(s.r, s.th, dot[s.tone], s.size * (s.kind === "faint" ? 2.3 : 2.15) * k, s.kind === "faint" ? 0.42 : 0.42);
+  });
+  haze.forEach(function(d){ at(d.r, d.th, dot[d.tone], d.size * k, d.a); });
+  dust.forEach(function(d){ at(d.r, d.th, dustDot, d.size * 2 * k, d.a); });
+  g.globalCompositeOperation = "lighter";
+  stars.forEach(function(s){
+    if ((s.kind !== "arm" && s.kind !== "core") || isLive(s)) return;
+    at(s.r, s.th, dot[s.tone], s.size * 2.45 * k, (s.kind === "core" ? 0.85 : 0.8) * (s.fade === undefined ? 1 : s.fade));
+  });
+  g.globalCompositeOperation = "source-over";
+  g.globalAlpha = 1;
+})();
+function paintGalaxy(g, view, now, full){
+  const breath = reduce ? 1 : 1 + 0.035 * Math.sin(now * 0.00045);
+  g.save();
+  g.translate(view.cx, view.cy);
+  g.rotate(view.pa);
+  g.scale(1, Math.cos(view.inc));
+  g.rotate(view.spin);
+  const glowR = view.R * 0.74 * breath;
+  const glow = g.createRadialGradient(0, 0, 0, 0, 0, glowR);
+  glow.addColorStop(0, rgba(COL.bone, 0.7));
+  glow.addColorStop(0.1, rgba(COL.ivory, 0.28));
+  glow.addColorStop(0.28, rgba(COL.bone, 0.16));
+  glow.addColorStop(0.5, rgba(COL.steel, 0.12));
+  glow.addColorStop(0.78, rgba(COL.steel, 0.04));
+  glow.addColorStop(1, rgba(COL.navy, 0));
+  g.fillStyle = glow;
+  g.beginPath();
+  g.arc(0, 0, glowR, 0, Math.PI * 2);
+  g.fill();
+  g.restore();
+  const tilt = Math.sin(view.inc);
+  const flat = Math.cos(view.inc);
+  spheroid(g, view, view.R * 1.05, Math.max(flat, 0.42), [
+    [0, rgba(COL.steel, 0.1)], [0.45, rgba(COL.steel, 0.05)], [1, rgba(COL.steel, 0)]
+  ]);
+  function spriteAt(dz, alpha){
+    g.save();
+    g.translate(view.cx, view.cy);
+    g.rotate(view.pa);
+    g.translate(0, dz * tilt * view.R);
+    g.scale(1, flat);
+    g.rotate(view.spin);
+    g.scale(view.R / UNIT, view.R / UNIT);
+    g.globalAlpha = alpha;
+    g.drawImage(sprite, -SPRITE / 2, -SPRITE / 2);
+    g.restore();
+  }
+  spriteAt(0, 1);
+  if (full && tilt > 0.2){
+    g.globalCompositeOperation = "lighter";
+    const a = 0.22 * tilt;
+    spriteAt(0.022, a);
+    spriteAt(-0.022, a);
+    spriteAt(0.048, a * 0.5);
+    spriteAt(-0.048, a * 0.5);
+    g.globalCompositeOperation = "source-over";
+  }
+  g.globalAlpha = 1;
+  spheroid(g, view, view.R * 0.34 * breath, 0.58 + 0.42 * flat, [
+    [0, rgba(COL.ivory, 0.5)], [0.25, rgba(COL.bone, 0.3)], [0.6, rgba(COL.bone, 0.09)], [1, rgba(COL.bone, 0)]
+  ]);
+  const k = view.R / 450;
+  if (full){
+    g.globalCompositeOperation = "lighter";
+    vol.forEach(function(s){
+      const p = project3(s.x, s.y, s.z, view);
+      const tw = reduce ? 1 : 0.7 + 0.3 * Math.sin(now * 0.002 + s.ph);
+      g.globalAlpha = s.a * tw;
+      const w = s.size * 2.3 * Math.max(0.8, k);
+      g.drawImage(dot[s.tone], p.x - w / 2, p.y - w / 2, w, w);
+    });
+    live.forEach(function(s){
+      const p = project(s.r, s.th, view);
+      const tw = reduce || s.kind === "core" ? 1 : 0.62 + 0.38 * (0.5 + 0.5 * Math.sin(now * 0.0022 + s.ph));
+      g.globalAlpha = (s.kind === "core" ? 0.95 : 0.78) * tw * (s.fade === undefined ? 1 : s.fade);
+      const w = s.size * 2.45 * Math.max(0.8, k);
+      g.drawImage(dot[s.tone], p.x - w / 2, p.y - w / 2, w, w);
+    });
+    knots.forEach(function(d){
+      const p = project(d.r, d.th, view);
+      const w = d.size * k;
+      g.globalAlpha = d.a;
+      g.drawImage(dot[d.tone], p.x - w / 2, p.y - w / 2, w, w);
+    });
+  }
+  g.globalCompositeOperation = "source-over";
+  const comp = project(0.86, -0.85, view);
+  const compR = view.R * (full ? 0.055 : 0.14);
+  const cg2 = g.createRadialGradient(comp.x, comp.y, 0, comp.x, comp.y, compR);
+  cg2.addColorStop(0, rgba(COL.ivory, 0.75));
+  cg2.addColorStop(0.5, rgba(COL.bone, 0.3));
+  cg2.addColorStop(1, rgba(COL.bone, 0));
+  g.globalAlpha = 1;
+  g.fillStyle = cg2;
+  g.beginPath();
+  g.arc(comp.x, comp.y, compR, 0, Math.PI * 2);
+  g.fill();
+  if (full){
+    companion.forEach(function(s){
+      const x = Math.cos(s.th) * s.r * view.R * 0.5;
+      const y = Math.sin(s.th) * s.r * view.R * 0.36;
+      g.globalAlpha = 0.85;
+      g.fillStyle = s.r < 0.03 ? COL.bone : COL.ivory;
+      g.fillRect(comp.x + x, comp.y + y, s.size, s.size);
+    });
+  }
+  const core = project(0, 0, view);
+  const cr = Math.max(full ? 34 : 8, view.R * 0.09 * breath);
+  const cg = g.createRadialGradient(core.x, core.y, 0, core.x, core.y, cr);
+  cg.addColorStop(0, rgba(COL.ivory, 0.96));
+  cg.addColorStop(0.3, rgba(COL.bone, 0.5));
+  cg.addColorStop(1, rgba(COL.bone, 0));
+  g.globalAlpha = 1;
+  g.fillStyle = cg;
+  g.beginPath();
+  g.arc(core.x, core.y, cr, 0, Math.PI * 2);
+  g.fill();
+  g.globalAlpha = 1;
+}
+function drawMark(now){
+  mctx.setTransform(1, 0, 0, 1, 0, 0);
+  mctx.clearRect(0, 0, 64, 64);
+  mctx.fillStyle = COL.navy;
+  mctx.fillRect(0, 0, 64, 64);
+  paintGalaxy(mctx, {cx:32, cy:33, R:26, spin:yaw, inc:inc, pa:pa}, now, false);
+  if (!snapped){ icon.href = mark.toDataURL("image/png"); snapped = true; }
+}
+function draw(now){
+  const dt = last ? Math.min(34, now - last) : 16;
+  last = now;
+  if (!reduce && !dragging){
+    yaw += dt * 0.000018 + velYaw;
+    velYaw *= Math.pow(0.9, dt / 16);
+    inc = Math.max(0.22, Math.min(1.42, inc + velInc));
+    velInc *= Math.pow(0.88, dt / 16);
+  }
+  lookX += (ptrX - lookX) * 0.06;
+  lookY += (ptrY - lookY) * 0.06;
+  const w = canvas.clientWidth, h = canvas.clientHeight;
+  const view = place();
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = COL.navy;
+  ctx.fillRect(0, 0, w, h);
+  stepSky(dt, w, h);
+  field.forEach(function(s){
+    const tw = reduce ? 0.7 : 0.35 + 0.65 * (0.5 + 0.5 * Math.sin(now * 0.0015 + s.ph));
+    const x = s.x * w + lookX * 28;
+    const y = s.y * h + lookY * 18;
+    ctx.globalAlpha = tw * (s.soft ? 0.55 : 0.85);
+    if (s.soft) ctx.drawImage(dot[s.tone], x, y, s.s * 3.2, s.s * 3.2);
+    else {
+      ctx.fillStyle = PAL[s.tone];
+      ctx.fillRect(x, y, s.s, s.s);
+    }
+  });
+  drift.forEach(function(d){
+    const dw = d.s * 2.2;
+    ctx.globalAlpha = d.a;
+    ctx.drawImage(dot[d.tone], d.x * w + lookX * 16, d.y * h + lookY * 10, dw, dw);
+  });
+  drawMeteors(ctx);
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = "source-over";
+  paintGalaxy(ctx, view, now, true);
+  drawMark(now);
+  if (!reduce) requestAnimationFrame(draw);
+}
+const stage = canvas.parentNode;
+function pointerNorm(e){
+  const r = canvas.getBoundingClientRect();
+  ptrX = ((e.clientX - r.left) / r.width - 0.5);
+  ptrY = ((e.clientY - r.top) / r.height - 0.5);
+}
+canvas.addEventListener("pointerdown", function(e){
+  dragging = true;
+  moved = 0;
+  velYaw = 0;
+  velInc = 0;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  pointerNorm(e);
+  stage.classList.add("is-drag");
+  try { canvas.setPointerCapture(e.pointerId); } catch (err) {}
+});
+canvas.addEventListener("pointermove", function(e){
+  pointerNorm(e);
+  if (!dragging) return;
+  const dx = e.clientX - lastX;
+  const dy = e.clientY - lastY;
+  lastX = e.clientX;
+  lastY = e.clientY;
+  moved += Math.abs(dx) + Math.abs(dy);
+  yaw += dx * 0.006;
+  inc = Math.max(0.22, Math.min(1.42, inc + dy * 0.005));
+  velYaw = dx * 0.0016;
+  velInc = dy * 0.0011;
+  if (reduce) draw(0);
+});
+function endDrag(){
+  if (!dragging) return;
+  dragging = false;
+  stage.classList.remove("is-drag");
+  if (moved < 7) velYaw += 0.012;
+  snapped = false;
+}
+canvas.addEventListener("pointerup", endDrag);
+canvas.addEventListener("pointercancel", endDrag);
+canvas.addEventListener("wheel", function(e){
+  e.preventDefault();
+  zoom = Math.max(0.72, Math.min(1.38, zoom * (e.deltaY > 0 ? 0.96 : 1.045)));
+  snapped = false;
+  if (reduce) draw(0);
+}, {passive:false});
+resize();
+window.addEventListener("resize", function(){resize(); if (reduce) draw(0);});
+requestAnimationFrame(draw);
+
+document.getElementById("login").addEventListener("submit", function(ev){
+  ev.preventDefault();
+  const user = document.getElementById("user").value.trim();
+  const pass = document.getElementById("pass").value;
+  const err = document.getElementById("err");
+  if (!user || !pass){ err.textContent = "Escribe usuario y contraseña."; return; }
+  sessionStorage.setItem("mipro_user", user);
+  location.href = "/";
+});
+</script>
+</body>
+</html>
