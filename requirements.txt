@@ -9,7 +9,7 @@ getmac==0.9.5
 mac-vendor-lookup==0.1.12
 dnspython==2.7.0
 beautifulsoup4==4.12.3
-cryptography==44.0.0
+cryptography==50.0.0
 scapy==2.6.1
 netmiko==4.3.0
 pyshark==0.6
